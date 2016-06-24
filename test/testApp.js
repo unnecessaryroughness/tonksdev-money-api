@@ -7,7 +7,7 @@ var sinon = require('sinon'),
 
 chai.should();
 
-describe('Money application standup', function() {
+describe('Money API standup', function() {
 
     it('should start the application cleanly and create a usable application object', function() {
         var tstApp = new app();
