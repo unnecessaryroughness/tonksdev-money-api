@@ -1,3 +1,3 @@
-docker rm dkrnode
-docker rm dkrmongo
+docker rm moneyapi
+docker rm moneydb
 docker ps -a
