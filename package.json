@@ -1,0 +1,43 @@
+{
+  "name": "tonksdev-money",
+  "version": "1.0.1",
+  "description": "tonksDEV Money nodejs application",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node --use_strict server.js"
+  },
+  "author": {
+    "name": "Mark Tonks",
+    "email": "marktonks75@gmail.com"
+  },
+  "homepage": "http://www.money-tonks.rhcloud.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openshift/origin-server"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.15.1",
+    "connect-mongo": "^1.2.0",
+    "cookie-parser": "^1.4.3",
+    "debug": "^2.2.0",
+    "ejs": "^2.4.2",
+    "express": "^4.13.4",
+    "express-session": "^1.13.0",
+    "mongoose": "^4.4.20",
+    "passport": "^0.3.2",
+    "passport-facebook": "^2.1.1",
+    "passport-google-oauth": "^1.0.0",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "gulp": "^3.9.1",
+    "gulp-mocha": "^2.2.0",
+    "gulp-nodemon": "^2.1.0",
+    "gulp-util": "^3.0.7",
+    "mocha": "^2.5.3",
+    "sinon": "^1.17.4"
+  }
+}
