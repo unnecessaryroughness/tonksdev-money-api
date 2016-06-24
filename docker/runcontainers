@@ -1,0 +1,3 @@
+docker run -d --name dkrmongo -v /home/markt/src/mongodb/data:/data/db  mongo mongod
+docker run -d --name dkrnode -p 8080:8080 --link dkrmongo unnecessaryroughness/test-circleci
+docker ps

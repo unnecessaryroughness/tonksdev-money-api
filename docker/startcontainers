@@ -1,0 +1,3 @@
+docker start dkrmongo
+docker start dkrnode
+docker ps
