@@ -12,7 +12,7 @@ function helpers(moneyApp) {
         moneyApp.variables.ipaddress = process.env.IP || '127.0.0.1';
         moneyApp.variables.port      = process.env.PORT || 8080;
         moneyApp.variables.mongourl = (process.env.MONEYDB_PORT_27017_TCP_ADDR)
-                               ? process.env.MONEYDB_PORT_27017_TCP_ADDR+':'+process.env.MONEYDB_PORT_27017_TCP_PORT
+                               ? process.env.MONEYDB_PORT_27017_TCP_ADDR+':'+process.env.MONEYDB_PORT_27017_TCP_PORT + '/'
                                : 'mongodb://localhost/';
         moneyApp.variables.mongourl  += 'money?authSource=admin';
 

@@ -88,13 +88,18 @@ var MoneyApi = function() {
 
     //Perform application setup functions
     self.initialize = function() {
+        debug('setting up variables...');
         self.helperFunctions.setupVariables();
+        debug('setting up termination handlers...');
         self.helperFunctions.setupTerminationHandlers();
+        debug('initializing server...');
         self.initializeServer();
     };
 
     //Start the server (starts up the sample application).
     self.start = function() {
+        debug('attempting to start server on %s:%d', self.variables.ipaddress, self.variables.port);
+
         self.app.listen(self.variables.port, self.variables.ipaddress, function() {
             debug('%s: tonksDEV Money Node server started on %s:%d ...',
                         Date(Date.now() ), self.variables.ipaddress, self.variables.port);
