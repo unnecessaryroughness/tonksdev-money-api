@@ -17,7 +17,7 @@ function helpers(moneyApp) {
         moneyApp.variables.port      = process.env.PORT || 8080;
         moneyApp.variables.mongourl = (process.env.MONEYDB_PORT_27017_TCP_ADDR)
                                ? process.env.MONEYDB_PORT_27017_TCP_ADDR+':'+process.env.MONEYDB_PORT_27017_TCP_PORT + '/'
-                               : 'mongodb://localhost/';
+                               : 'mongodb://172.17.0.2:27017/';
         moneyApp.variables.mongourl  += 'money?authSource=admin';
     };
 
@@ -28,6 +28,12 @@ function helpers(moneyApp) {
         if (typeof sig === 'string') {
            debugT('%s: Received %s - terminating tonksDEV Money app ...',
                        Date(Date.now()), sig);
+
+          //close the mongoose connection, if open
+           if (typeof moneyApp.mongoose != 'undefined' && moneyApp.mongoose.connection.readyState != 0) {
+              debugT('closing connection to mongodb...');
+              moneyApp.mongoose.connection.close();
+           }
            process.exit(1);
         }
         debugT('%s: Node server stopped.', Date(Date.now()) );

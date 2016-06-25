@@ -1,0 +1,2 @@
+docker run -d --name moneydb -v /data/db:/data/db mongo mongod
+docker ps

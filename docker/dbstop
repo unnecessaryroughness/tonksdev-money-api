@@ -1,0 +1,2 @@
+docker stop moneydb
+docker ps
