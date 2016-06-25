@@ -96,6 +96,7 @@ var MoneyApi = function() {
         self.initializeServer();
     };
 
+
     //Start the server (starts up the sample application).
     self.start = function() {
         debug('attempting to start server on %s:%d', self.variables.ipaddress, self.variables.port);

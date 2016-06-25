@@ -7,4 +7,4 @@ RUN cd /src; npm install
 
 EXPOSE 8080
 
-CMD cd /src && node ./server.js
+CMD cd /src && DEBUG=tonksDEV:* node ./server.js

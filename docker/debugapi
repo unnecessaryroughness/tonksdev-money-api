@@ -1,0 +1,2 @@
+docker run -d --name moneydb -v /data/db:/data/db mongo mongod
+docker run -it --name moneyapi -p 8080:8080 --link moneydb unnecessaryroughness/tonksdev-money-api bash
