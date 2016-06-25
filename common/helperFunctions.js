@@ -12,7 +12,8 @@ function helpers(moneyApp) {
         debug('process.env.IP is: ' + process.env.IP);
         debug('process.env.PORT is: ' + process.env.PORT);
 
-        moneyApp.variables.ipaddress = process.env.IP || '127.0.0.1';
+        // moneyApp.variables.ipaddress = process.env.IP || '127.0.0.1';
+        moneyApp.variables.ipaddress = process.env.IP || '0.0.0.0';
         moneyApp.variables.port      = process.env.PORT || 8080;
         moneyApp.variables.mongourl = (process.env.MONEYDB_PORT_27017_TCP_ADDR)
                                ? process.env.MONEYDB_PORT_27017_TCP_ADDR+':'+process.env.MONEYDB_PORT_27017_TCP_PORT + '/'
