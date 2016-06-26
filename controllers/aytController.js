@@ -14,7 +14,7 @@ var controller = function(moneyApiVars) {
       }
 
       var rtnVal = {
-          'application': 'ALIVE',
+          'application': 'API',
           'database': readyStateMap[mongoose.connection.readyState].toUpperCase(),
           'db-connection': moneyApiVars.mongourl,
           'environment': moneyApiVars.environment.toUpperCase(),
