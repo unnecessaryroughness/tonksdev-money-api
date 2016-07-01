@@ -3,9 +3,7 @@ var express      = require('express'),
     cookieParser = require('cookie-parser'),
     path         = require('path'),
     debug        = require('debug')('tonksDEV:money:api:server'),
-    session      = require('express-session'),
-    mongoose     = require('mongoose'),
-    mongoStore   = require('connect-mongo')(session);
+    mongoose     = require('mongoose')
 
 //Define the application object
 var MoneyApi = function() {
@@ -26,14 +24,6 @@ var MoneyApi = function() {
             self.app.use(express.static('public'));
             self.app.set('trust proxy', 1);
             self.variables.environment = self.app.get('env');
-            self.app.use(session({
-                            secret: self.app.secret,
-                            store: new mongoStore({mongooseConnection: mongoose.connection}),
-                            resave: false,
-                            saveUninitialized: false,
-                            cookie: { httpOnly: true,
-                                      secure: (self.variables.environment === 'development') ? false : true }
-                        }));
 
             require('../config/passport')(self.app);
 

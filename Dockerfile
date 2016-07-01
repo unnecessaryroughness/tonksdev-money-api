@@ -5,6 +5,6 @@ COPY . /src
 
 RUN cd /src; npm install
 
-EXPOSE 8080
+EXPOSE 8081
 
 CMD cd /src && DEBUG=tonksDEV:* node ./server.js
