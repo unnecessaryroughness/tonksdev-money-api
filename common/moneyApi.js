@@ -25,9 +25,6 @@ var MoneyApi = function() {
             self.app.set('trust proxy', 1);
             self.variables.environment = self.app.get('env');
 
-            require('../config/passport')(self.app);
-
-
         //set up connection to mongodb - mongoose creates a singleton object, so it will stay connected
             self.mongoose = mongoose;
 

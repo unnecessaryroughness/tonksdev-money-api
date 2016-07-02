@@ -20,6 +20,7 @@ var controller = function(moneyApiVars) {
           'environment': moneyApiVars.environment.toUpperCase(),
           'ip-port': moneyApiVars.ipaddress + ':' + moneyApiVars.port
       }
+      res.setHeader('Content-Type', 'application/json');
       return res.status(200).json(rtnVal);
   }
 
