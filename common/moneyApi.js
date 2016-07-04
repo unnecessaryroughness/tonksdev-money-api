@@ -17,7 +17,6 @@ var MoneyApi = function() {
 
         //setup the web server app
             self.app = express();
-            self.app.secret = '#Mj0vCwDae%l';
             self.app.use(bodyParser.urlencoded({extended:true}));
             self.app.use(bodyParser.json());
             self.app.use(cookieParser());

@@ -15,7 +15,11 @@ gulp.task('default', function() {
         script: 'server.js',
         ext: 'js html',
         env: {
-            DEBUG:['tonksDEV:*']
+            DEBUG:['tonksDEV:*'],
+            IP:['0.0.0.0'],
+            PORT:['8081'],
+            MONEYDB_PORT_27017_TCP_ADDR:['172.17.0.2'],
+            MONEYDB_PORT_27017_TCP_PORT:['27017']
         },
         ignore: ['./node_modules/**']
     })
@@ -25,7 +29,7 @@ gulp.task('default', function() {
         console.log('******************************************');
     });
 });
- 
+
 // gulp.task('mocha', function() {
 //     return gulp.src(['test/*.js'], {read: false})
 //             .pipe(mocha({reporter: 'list'}))
