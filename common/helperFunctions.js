@@ -9,8 +9,8 @@ function helpers(moneyApp) {
 
     //Set up server IP address and port # using env variables/defaults.
     var setupVariables = function() {
-        moneyApp.variables.ipaddress = process.env.IP || "0.0.0.0";
-        moneyApp.variables.port      = process.env.PORT || "8081";
+        moneyApp.variables.ipaddress = process.env.IP;
+        moneyApp.variables.port      = process.env.PORT;
         moneyApp.variables.mongourl  = process.env.MONEYDB_PORT_27017_TCP_ADDR+':'+process.env.MONEYDB_PORT_27017_TCP_PORT + '/money?authSource=admin';
     };
 

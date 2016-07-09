@@ -4,8 +4,7 @@ var mongoose = require('mongoose'),
 var controller = function(moneyApiVars) {
   'use strict';
 
-  var ayt = function(req, res) {
-
+  var aytData = function(done) {
       var readyStateMap = {
           '0': 'disconnected',
           '1': 'connected',
@@ -16,16 +15,15 @@ var controller = function(moneyApiVars) {
       var rtnVal = {
           'application': 'API',
           'database': readyStateMap[mongoose.connection.readyState].toUpperCase(),
-          'db-connection': moneyApiVars.mongourl,
+          'dbconnection': moneyApiVars.mongourl,
           'environment': moneyApiVars.environment.toUpperCase(),
-          'ip-port': moneyApiVars.ipaddress + ':' + moneyApiVars.port
+          'ipport': moneyApiVars.ipaddress + ':' + moneyApiVars.port
       }
-      res.setHeader('Content-Type', 'application/json');
-      return res.status(200).json(rtnVal);
+      done(null, rtnVal);
   }
 
   return {
-    ayt: ayt
+    aytData: aytData
   }
 }
 

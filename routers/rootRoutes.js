@@ -17,9 +17,20 @@ var routes = function(moneyApiVars) {
     });
 
 
-    //handle request to "are you there?"
     rootRouter.route('/ayt')
-        .get(aytController.ayt);
+        .get(function(req, res, next) {
+            aytController.aytData(function(err, data) {
+              res.setHeader('Content-Type', 'application/json');
+              if (!err) {
+                debug("AYT data is: " + JSON.stringify(data));
+                return res.status(200).json(data);
+              } else {
+                debug('AYT call failed');
+                return res.status(400).json({'error': err});
+              }
+            });
+        });
+
 
     return rootRouter;
 };
