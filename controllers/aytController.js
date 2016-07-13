@@ -1,10 +1,10 @@
-var mongoose = require('mongoose'),
+const mongoose = require('mongoose'),
     debug = require('debug')('tonksDEV:money:api:aytController');
 
-var controller = function(moneyApiVars) {
+const controller = function(moneyApiVars) {
   'use strict';
 
-  var aytData = function(done) {
+  const aytData = function(done) {
       var readyStateMap = {
           '0': 'disconnected',
           '1': 'connected',
@@ -12,7 +12,7 @@ var controller = function(moneyApiVars) {
           '3': 'disconnecting'
       }
 
-      var rtnVal = {
+      const rtnVal = {
           'application': 'API',
           'database': readyStateMap[mongoose.connection.readyState].toUpperCase(),
           'dbconnection': moneyApiVars.mongourl,

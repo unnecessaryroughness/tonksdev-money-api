@@ -1,14 +1,14 @@
-var debug = require('debug')('tonksDEV:money:api:helpers'),
-    debugT = require('debug')('tonksDEV:money:api:term:handlers');
+const debug = require('debug')('tonksDEV:money:api:helpers'),
+      debugT = require('debug')('tonksDEV:money:api:term:handlers');
 
 function helpers(moneyApp) {
     'use strict';
 
-    var self = moneyApp;
+    let self = moneyApp;
     moneyApp.variables = {};
 
     //Set up server IP address and port # using env variables/defaults.
-    var setupVariables = function() {
+    const setupVariables = function() {
         moneyApp.variables.ipaddress = process.env.IP;
         moneyApp.variables.port      = process.env.PORT;
         moneyApp.variables.mongourl  = process.env.MONEYDB_PORT_27017_TCP_ADDR+':'+process.env.MONEYDB_PORT_27017_TCP_PORT + '/money?authSource=admin';
@@ -17,7 +17,7 @@ function helpers(moneyApp) {
     // terminator === the termination handler
     // Terminate server on receipt of the specified signal.
     // @param {string} sig  Signal to terminate on.
-    var terminator = function(sig){
+    const terminator = function(sig){
         if (typeof sig === 'string') {
            debugT('%s: Received %s - terminating tonksDEV Money app ...',
                        Date(Date.now()), sig);
@@ -33,7 +33,7 @@ function helpers(moneyApp) {
     };
 
     // Setup termination handlers (for exit and a list of signals).
-    var setupTerminationHandlers = function(){
+    const setupTerminationHandlers = function(){
 
         //  Process on exit and signals.
         process.on('exit', function() { moneyApp.helperFunctions.terminator(); });

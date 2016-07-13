@@ -1,19 +1,18 @@
-var debug = require('debug')('tonksDEV:money:api:routing'),
-    debugM = require('debug')('tonksDEV:money:api:mongodb'),
-    path = require('path'),
-    express = require('express'),
-    tonksDEVUser = require('../models/tonksdevUserModel.js');
+const debug = require('debug')('tonksDEV:money:api:routing'),
+      debugM = require('debug')('tonksDEV:money:api:mongodb'),
+      path = require('path'),
+      express = require('express'),
+      tonksDEVUser = require('../models/tonksdevUserModel.js');
 
-var routes = function(moneyApiVars) {
+const routes = function(moneyApiVars) {
     'use strict';
 
-    var rootRouter = express.Router(),
+    const rootRouter = express.Router(),
         aytController = require('../controllers/aytController')(moneyApiVars);
 
     rootRouter.route('/')
         .get(function(req, res, next) {
-            res.writeHead(200);
-            res.end();
+            res.status(200).json({'welcome': 'welcome to the tonksdev-money API'});
     });
 
 
@@ -23,10 +22,10 @@ var routes = function(moneyApiVars) {
               res.setHeader('Content-Type', 'application/json');
               if (!err) {
                 debug("AYT data is: " + JSON.stringify(data));
-                return res.status(200).json(data);
+                res.status(200).json(data);
               } else {
                 debug('AYT call failed');
-                return res.status(400).json({'error': err});
+                res.status(400).json({'error': err});
               }
             });
         });

@@ -51,6 +51,7 @@ const controller = function(moneyApiVars) {
           rtnUser.displayName = userFromDB.displayName;
           rtnUser.email = userFromDB.email;
           rtnUser.image = userFromDB.image || '';
+          rtnUser.groups = userFromDB.groups;
           rtnUser.links = {};
       }
       return rtnUser;

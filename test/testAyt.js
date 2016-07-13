@@ -1,12 +1,12 @@
 'use strict';
 
-var sinon = require('sinon'),
-    chai = require('chai'),
-    expect = chai.expect,
-    assert = chai.assert,
-    ctrl = require('../controllers/aytController'),
-    app = require('../common/moneyApi'),
-    supertest = require('supertest');
+const sinon = require('sinon'),
+      chai = require('chai'),
+      expect = chai.expect,
+      assert = chai.assert,
+      ctrl = require('../controllers/aytController'),
+      app = require('../common/moneyApi'),
+      supertest = require('supertest');
 
 chai.should();
 

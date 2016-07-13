@@ -3,26 +3,37 @@ const schema = mongoose.Schema;
 
 const UserSchema = schema({
     _id: {
-        type: schema.Types.ObjectId
+        type: schema.Types.ObjectId,
+        required: true
     },
     displayName: {
-        type: String
+        type: String,
+        required: true
     },
     image: {
-        type: String
+        type: String,
+        required: false
     },
     email: {
-        type: String
+        type: String,
+        required: true
     },
     biography: {
-        type: String
+        type: String,
+        required: false
     },
     joinDate: {
-        type: Date
+        type: Date,
+        required: false
     },
     google: {
-        type: Object
-    }
+        type: Object,
+        required: false
+    },
+    groups: [{
+        type: String,
+        required: false
+    }]
 });
 
 //parameters are: schema-name, schema-object, mongo-collection-name

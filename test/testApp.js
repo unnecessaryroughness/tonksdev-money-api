@@ -1,9 +1,9 @@
 'use strict';
 
-var sinon = require('sinon'),
-    chai = require('chai'),
-    expect = chai.expect,
-    app = require('../common/moneyApi');
+const sinon = require('sinon'),
+      chai = require('chai'),
+      expect = chai.expect,
+      app = require('../common/moneyApi');
 
 chai.should();
 
