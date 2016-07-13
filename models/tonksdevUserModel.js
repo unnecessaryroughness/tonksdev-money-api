@@ -1,7 +1,10 @@
-var mongoose = require('mongoose');
-var schema = mongoose.Schema;
+const mongoose = require('mongoose');
+const schema = mongoose.Schema;
 
-var UserSchema = schema({
+const UserSchema = schema({
+    _id: {
+        type: schema.Types.ObjectId
+    },
     displayName: {
         type: String
     },
@@ -17,16 +20,10 @@ var UserSchema = schema({
     joinDate: {
         type: Date
     },
-    facebook: {
-        type: Object
-    },
-    twitter: {
-        type: Object
-    },
     google: {
         type: Object
     }
 });
 
 //parameters are: schema-name, schema-object, mongo-collection-name
-module.exports = mongoose.model('User', UserSchema, 'user');
+module.exports = mongoose.model('user', UserSchema, 'user');

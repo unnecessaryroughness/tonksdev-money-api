@@ -1,15 +1,15 @@
-var express      = require('express'),
-    bodyParser   = require('body-parser'),
-    cookieParser = require('cookie-parser'),
-    path         = require('path'),
-    debug        = require('debug')('tonksDEV:money:api:server'),
-    mongoose     = require('mongoose')
+const express      = require('express'),
+      bodyParser   = require('body-parser'),
+      cookieParser = require('cookie-parser'),
+      path         = require('path'),
+      debug        = require('debug')('tonksDEV:money:api:server'),
+      mongoose     = require('mongoose')
 
 //Define the application object
-var MoneyApi = function() {
+const MoneyApi = function() {
     'use strict';
 
-    var self = this;
+    let self = this;
     self.helperFunctions = require('./helperFunctions')(self);
 
     //Initialize the server (express)
@@ -41,13 +41,15 @@ var MoneyApi = function() {
 
 
         //use predefined routers
-            var rootRouter = require('../routers/rootRoutes')(self.variables);
+            let rootRouter = require('../routers/rootRoutes')(self.variables);
+            let userRouter = require('../routers/userRoutes')(self.variables);
             self.app.use('/', rootRouter);
+            self.app.use('/user', userRouter);
 
 
         //default error handler - throw 404
             self.app.use(function(req, res, next) {
-                var err = new Error('Not Found');
+                let err = new Error('Not Found');
                 err.status = 404;
                 next(err);
             });
