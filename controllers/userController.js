@@ -48,6 +48,24 @@ const controller = function(moneyApiVars) {
   }
 
 
+  const createUser = function(reqBody, done) {
+      if (reqBody.displayName && reqBody.email) {
+        let newUser = constructUserObjectForDB(reqBody);
+        newUser.save(function(err) {
+            if (err) {
+              stdErrObj.userError = err;
+              done(stdErrObj, {"saveStatus": "failed"});
+            } else {
+              done(null, {"saveStatus": "saved"});
+            }
+        });
+      } else {
+        stdErrObj.userError = "displayName and email address were not supplied";
+        done(stdErrObj, {"saveStatus": "failed"});
+      }
+  }
+
+
   const constructUserObject = function(userFromDB) {
       let rtnUser = {};
       if (userFromDB) {
@@ -71,10 +89,22 @@ const controller = function(moneyApiVars) {
       return rtnUserList;
   }
 
+  const constructUserObjectForDB = function(userFromApp) {
+      let newUser = new tonksDEVUser;
+      if (userFromApp) {
+          newUser.displayName = userFromApp.displayName;
+          newUser.email = userFromApp.email;
+          newUser.image = userFromApp.image || "";
+          newUser.groups = userFromApp.groups || [];
+      }
+      return newUser;
+  }
+
   return {
     findUser: findUser,
     findUserByEmail: findUserByEmail,
-    findAllUsers: findAllUsers
+    findAllUsers: findAllUsers,
+    createUser: createUser
   }
 }
 

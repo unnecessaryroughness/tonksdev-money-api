@@ -19,6 +19,16 @@ const routes = function(moneyApiVars) {
                   {'getUserByEmail': HATEOASProtocol + req.headers.host + HATEOASJunction + 'email/[user-email-address]'}
             ]})
         })
+        .post(function(req, res, next) {
+            userController.createUser(req.body, function(err, data) {
+                if (!err && data.saveStatus === 'saved') {
+                    res.status(200).json(data);
+                } else {
+                    res.status(500).json(err);
+                }
+            })
+        });
+
 
     userRouter.route('/allusers')
         .get(function(req, res, next) {
@@ -36,6 +46,7 @@ const routes = function(moneyApiVars) {
             })
         });
 
+
     userRouter.route('/:uid')
       .get(function(req, res, next) {
           userController.findUser(req.params.uid, function(err, userData) {
@@ -48,7 +59,13 @@ const routes = function(moneyApiVars) {
                 res.status(200).json(userData);
               }
           })
-        });
+        })
+      .put(function(req, res, next) {
+          userController.updateUser(req.body, function(err, data) {
+              //handle response
+          })
+      });
+
 
     userRouter.route('/email/:ueml')
       .get(function(req, res, next) {
