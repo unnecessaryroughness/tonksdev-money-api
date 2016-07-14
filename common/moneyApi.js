@@ -89,11 +89,15 @@ const MoneyApi = function() {
     self.start = function() {
         debug('attempting to start server on %s:%d', self.variables.ipaddress, self.variables.port);
 
-        self.app.listen(self.variables.port, self.variables.ipaddress, function() {
+        self.server = self.app.listen(self.variables.port, self.variables.ipaddress, function() {
             debug('%s: tonksDEV Money Node server started on %s:%d ...',
                         Date(Date.now() ), self.variables.ipaddress, self.variables.port);
         });
     };
+
+    self.stop = function() {
+        self.server.close();
+    }
 
 };
 

@@ -6,12 +6,14 @@ const controller = function(moneyApiVars) {
   'use strict';
 
   const stdErrMsg = 'User not found; error returned from database; controller is sending an error';
+  let stdErrObj = {'userError': {}};
 
   const findUser = function(uid, done) {
       tonksDEVUser.findById(uid, function(err, foundUser) {
           if (err || !foundUser) {
               debug(stdErrMsg);
-              done(err, null);
+              stdErrObj.userError = err;
+              done(stdErrObj, null);
           } else {
               debug('User ' + uid + ' found - ' + JSON.stringify(foundUser) + '; controller is sending user data');
               done(null, constructUserObject(foundUser));
@@ -23,7 +25,8 @@ const controller = function(moneyApiVars) {
       tonksDEVUser.findOne({'email': ueml}, function(err, foundUser) {
           if (err || !foundUser) {
               debug(stdErrMsg);
-              done(err, null);
+              stdErrObj.userError = err;
+              done(stdErrObj, null);
           } else {
               debug('User ' + ueml + ' found - ' + JSON.stringify(foundUser) + '; controller is sending user data');
               done(null, constructUserObject(foundUser));
@@ -35,7 +38,8 @@ const controller = function(moneyApiVars) {
       tonksDEVUser.find({}, function(err, foundUsers) {
         if (err || !foundUsers) {
             debug(stdErrMsg);
-            done(err, null);
+            stdErrObj.userError = err;
+            done(stdErrObj, null);
         } else {
             debug(foundUsers.length + ' Users found');
             done(null, constructUserList(foundUsers));

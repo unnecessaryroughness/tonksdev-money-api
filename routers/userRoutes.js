@@ -13,10 +13,10 @@ const routes = function(moneyApiVars) {
 
     userRouter.route('/')
         .get(function(req, res, next) {
-            res.status(200).json({'available functions': [
-                  {'get all users': HATEOASProtocol + req.headers.host + HATEOASJunction + 'allusers'},
-                  {'get user by id': HATEOASProtocol + req.headers.host + HATEOASJunction + '[user-id]'},
-                  {'get user by email': HATEOASProtocol + req.headers.host + HATEOASJunction + 'email/[user-email-address]'}
+            res.status(200).json({'availableFunctions': [
+                  {'getAllUsers': HATEOASProtocol + req.headers.host + HATEOASJunction + 'allusers'},
+                  {'getUserById': HATEOASProtocol + req.headers.host + HATEOASJunction + '[user-id]'},
+                  {'getUserByEmail': HATEOASProtocol + req.headers.host + HATEOASJunction + 'email/[user-email-address]'}
             ]})
         })
 
@@ -25,7 +25,7 @@ const routes = function(moneyApiVars) {
             userController.findAllUsers(function(err, userData) {
               if (err || !userData) {
                 debug('No Users found');
-                res.status(500).json({"error": "no user was not found"});
+                res.status(500).json({"error": "no user was not found", "errDetails" : err});
               } else {
                 debug('Users found - router is sending success!');
                 userData.forEach(function(val, idx, arr) {
@@ -41,7 +41,7 @@ const routes = function(moneyApiVars) {
           userController.findUser(req.params.uid, function(err, userData) {
               if (err || !userData) {
                 debug('User not found - router is sending an error');
-                res.status(500).json({"error": "user was not found", "userid":req.params.uid});
+                res.status(500).json({"error": "user was not found", "userid":req.params.uid, "errDetails" : err});
               } else {
                 debug('User found - router is sending success!');
                 userData.links.allUsers = HATEOASProtocol + req.headers.host + HATEOASJunction + 'allusers';
@@ -55,7 +55,7 @@ const routes = function(moneyApiVars) {
           userController.findUserByEmail(req.params.ueml, function(err, userData) {
               if (err || !userData) {
                 debug('User not found - router is sending an error');
-                res.status(500).json({"error": "user was not found", "userid":req.params.uid});
+                res.status(500).json({"error": "user was not found", "userid":req.params.ueml, "errDetails" : err});
               } else {
                 debug('User found - router is sending success!');
                 userData.links.allUsers = HATEOASProtocol + req.headers.host + HATEOASJunction + 'allusers';

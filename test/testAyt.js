@@ -58,6 +58,7 @@ describe('"Are You There??" functional testing', function() {
               //console.log(res.body);
               res.status.should.equal(200);
               res.body.application.should.equal("API");
+              tstApp.stop();
               done();
           })
     })
