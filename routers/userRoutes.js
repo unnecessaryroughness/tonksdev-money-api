@@ -21,7 +21,7 @@ const routes = function(moneyApiVars) {
         })
         .post(function(req, res, next) {
             userController.createUser(req.body, function(err, data) {
-                if (!err && data.saveStatus === 'saved') {
+                if (!err && data.saveStatus === 'created') {
                     res.status(200).json(data);
                 } else {
                     res.status(500).json(err);
@@ -38,7 +38,7 @@ const routes = function(moneyApiVars) {
                 res.status(500).json({"error": "no user was not found", "errDetails" : err});
               } else {
                 debug('Users found - router is sending success!');
-                userData.forEach(function(val, idx, arr) {
+                userData.userList.forEach(function(val, idx, arr) {
                     val.links.self = HATEOASProtocol + req.headers.host + HATEOASJunction + val.id;
                 });
                 res.status(200).json(userData);
@@ -55,7 +55,7 @@ const routes = function(moneyApiVars) {
                 res.status(500).json({"error": "user was not found", "userid":req.params.uid, "errDetails" : err});
               } else {
                 debug('User found - router is sending success!');
-                userData.links.allUsers = HATEOASProtocol + req.headers.host + HATEOASJunction + 'allusers';
+                userData.user.links.allUsers = HATEOASProtocol + req.headers.host + HATEOASJunction + 'allusers';
                 res.status(200).json(userData);
               }
           })
@@ -63,6 +63,13 @@ const routes = function(moneyApiVars) {
       .put(function(req, res, next) {
           userController.updateUser(req.body, function(err, data) {
               //handle response
+              userController.updateUser(req.body, function(err, data) {
+                if (!err && data.saveStatus === 'updated') {
+                    res.status(200).json(data);
+                } else {
+                    res.status(500).json(err);
+                }
+              })
           })
       });
 
@@ -75,7 +82,7 @@ const routes = function(moneyApiVars) {
                 res.status(500).json({"error": "user was not found", "userid":req.params.ueml, "errDetails" : err});
               } else {
                 debug('User found - router is sending success!');
-                userData.links.allUsers = HATEOASProtocol + req.headers.host + HATEOASJunction + 'allusers';
+                userData.user.links.allUsers = HATEOASProtocol + req.headers.host + HATEOASJunction + 'allusers';
                 res.status(200).json(userData);
               }
           })

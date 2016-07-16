@@ -40,10 +40,10 @@ describe('"User" functional testing', function() {
             //console.log(data);
             expect(err, 'error was returned').to.be.null;
             expect(data, 'no data was returned').to.not.be.null;
-            expect(data.length, 'empty records array was returned').to.be.above(0);
-            expect(data[0].id, 'no ID for the first user').to.exist;
-            expect(data[0].displayName, 'no displayName for the first user').to.exist;
-            expect(data[0].email, 'no email for the first user').to.exist;
+            expect(data.userList.length, 'empty records array was returned').to.be.above(0);
+            expect(data.userList[0].id, 'no ID for the first user').to.exist;
+            expect(data.userList[0].displayName, 'no displayName for the first user').to.exist;
+            expect(data.userList[0].email, 'no email for the first user').to.exist;
             done();
         })
     })
@@ -73,9 +73,9 @@ describe('"User" functional testing', function() {
             //console.log(data);
             expect(err, 'error was returned').to.be.null;
             expect(data, 'no data was returned').to.not.be.null;
-            expect(data.id, 'no ID for the first user').to.exist;
-            expect(data.displayName, 'no displayName for the first user').to.exist;
-            expect(data.email, 'no email for the first user').to.exist;
+            expect(data.user.id, 'no ID for the first user').to.exist;
+            expect(data.user.displayName, 'no displayName for the first user').to.exist;
+            expect(data.user.email, 'no email for the first user').to.exist;
             done();
         })
     })
@@ -105,9 +105,9 @@ describe('"User" functional testing', function() {
             //console.log(data);
             expect(err, 'error was returned').to.be.null;
             expect(data, 'no data was returned').to.not.be.null;
-            expect(data.id, 'no ID for the first user').to.exist;
-            expect(data.displayName, 'no displayName for the first user').to.exist;
-            expect(data.email, 'no email for the first user').to.exist;
+            expect(data.user.id, 'no ID for the first user').to.exist;
+            expect(data.user.displayName, 'no displayName for the first user').to.exist;
+            expect(data.user.email, 'no email for the first user').to.exist;
             done();
         })
     })
