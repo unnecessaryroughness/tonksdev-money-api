@@ -11,10 +11,9 @@ const controller = function(moneyApiVars) {
   const findUser = function(uid, done) {
       tonksDEVUser.findById(uid, function(err, foundUser) {
           if (err || !foundUser) {
-              stdErrObj.userError = err;
-              done(stdErrObj, null);
+              done(constructErrReturnObj(stdErrObj, err), null);
           } else {
-              done(null, {'user': constructUserObject(foundUser)});
+              done(null, {'user': constructUserObjectForRead(foundUser)});
           }
       })
   }
@@ -22,10 +21,9 @@ const controller = function(moneyApiVars) {
   const findUserByEmail = function(ueml, done) {
       tonksDEVUser.findOne({'email': ueml}, function(err, foundUser) {
           if (err || !foundUser) {
-              stdErrObj.userError = err;
-              done(stdErrObj, null);
+              done(constructErrReturnObj(stdErrObj, err), null);
           } else {
-              done(null, {'user': constructUserObject(foundUser)});
+              done(null, {'user': constructUserObjectForRead(foundUser)});
           }
       })
   }
@@ -33,8 +31,17 @@ const controller = function(moneyApiVars) {
   const findAllUsers = function(done) {
       tonksDEVUser.find({}, function(err, foundUsers) {
         if (err || !foundUsers) {
-            stdErrObj.userError = err;
-            done(stdErrObj, null);
+            done(constructErrReturnObj(stdErrObj, err), null);
+        } else {
+            done(null, {'userList': constructUserList(foundUsers)});
+        }
+      })
+  }
+
+  const findAllUsersByGroupId = function(groupId, done) {
+      tonksDEVUser.find({'groups': groupId}, function(err, foundUsers) {
+        if (err || !foundUsers) {
+            done(constructErrReturnObj(stdErrObj, err), null);
         } else {
             done(null, {'userList': constructUserList(foundUsers)});
         }
@@ -43,57 +50,69 @@ const controller = function(moneyApiVars) {
 
 
   const createUser = function(reqBody, done) {
-    debug("in create routine");
       if (reqBody.user.displayName && reqBody.user.email) {
         let newUser = constructUserObjectForSave(reqBody.user);
         newUser.save(function(err, savedUser) {
             if (err) {
-              stdErrObj.userError = err;
-              done(stdErrObj, {'saveStatus': 'failed create'});
+              done(constructErrReturnObj(stdErrObj, err), {'saveStatus': 'failed create'});
             } else {
-              done(null, {'saveStatus': 'created', 'user': constructUserObject(savedUser)});
+              done(null, {'saveStatus': 'created', 'user': constructUserObjectForRead(savedUser)});
             }
         });
       } else {
-        stdErrObj.userError = 'displayName and email address were not supplied';
-        done(stdErrObj, {'saveStatus': 'failed'});
+        done(constructErrReturnObj(stdErrObj, 'displayName and email address were not supplied'), {'saveStatus': 'failed'});
       }
   }
 
 
-  const updateUser = function(reqBody, done) {
-    debug("in update routine");
-    if (reqBody && reqBody.user && reqBody.user.id) {
-      tonksDEVUser.findById(reqBody.user.id, function(err, foundUser) {
+  const updateUser = function(uid, reqBody, done) {
+    if (uid && reqBody && reqBody.user) {
+      tonksDEVUser.findById(uid, function(err, foundUser) {
           if (err || !foundUser) {
-              stdErrObj.userError = err;
-              done(stdErrObj, null);
+              done(constructErrReturnObj(stdErrObj, err, 'user could not be found in the database'), null);
           } else {
               let updateUser = constructUserObjectForUpdate(foundUser, reqBody.user);
               updateUser.save(function(err, savedUser) {
                   if (err) {
-                    stdErrObj.userError = err;
-                    done(stdErrObj, {'saveStatus': 'failed update'});
+                    done(constructErrReturnObj(stdErrObj, err), {'saveStatus': 'failed update'});
                   } else {
-                    done(null, {'saveStatus': 'updated', 'user': constructUserObject(savedUser)});
+                    done(null, {'saveStatus': 'updated', 'user': constructUserObjectForRead(savedUser)});
                   }
               })
           }
       })
     } else {
-      stdErrObj.userError = 'No user supplied, or a user with no ID was supplied';
-      done(stdErrObj, null);
+      done(constructErrReturnObj(stdErrObj, 'No user supplied, or no user ID was supplied'), null);
     }
   }
 
 
-  const constructUserObject = function(userFromDB) {
+  const deleteUser = function(uid, done) {
+    tonksDEVUser.findById(uid, function(err, foundUser) {
+        if (err || !foundUser) {
+            done(constructErrReturnObj(stdErrObj, err, 'error finding requested user in the database'), null);
+        } else {
+            foundUser.remove(function(err) {
+              if (err) {
+                done(constructErrReturnObj(stdErrObj, err, 'error removing user from the database'), null);
+              } else {
+                done(null, {'saveStatus': 'deleted'});
+              }
+            })
+        }
+    })
+  }
+
+  const constructUserObjectForRead = function(userFromDB) {
       let rtnUser = {};
       if (userFromDB) {
           rtnUser.id = userFromDB._id;
           rtnUser.displayName = userFromDB.displayName;
           rtnUser.email = userFromDB.email;
           rtnUser.image = userFromDB.image || '';
+          rtnUser.payday = userFromDB.payday;
+          rtnUser.biography = userFromDB.biography || '';
+          rtnUser.joinDate = userFromDB.joinDate || '2016-01-01';
           rtnUser.groups = userFromDB.groups;
           rtnUser.links = {};
       }
@@ -104,7 +123,7 @@ const controller = function(moneyApiVars) {
       let rtnUserList = [];
       if (userListFromDB && userListFromDB.length > 0) {
           userListFromDB.forEach(function(val, idx, arr) {
-              rtnUserList.push(constructUserObject(val));
+              rtnUserList.push(constructUserObjectForRead(val));
           })
       }
       return rtnUserList;
@@ -116,9 +135,12 @@ const controller = function(moneyApiVars) {
           newUser.displayName = userFromApp.displayName;
           newUser.email = userFromApp.email;
           newUser.image = userFromApp.image || '';
+          newUser.payday = userFromApp.payday || 27;
+          newUser.biography = userFromApp.biography || '';
+          newUser.joinDate = userFromApp.joinDate || '2016-01-01';
           newUser.groups = userFromApp.groups || [];
-          if (newUser.groups.indexOf('ALL USERS') < 0) {
-            newUser.groups.push('ALL USERS');
+          if (newUser.groups.indexOf('ALLUSERS') < 0) {
+            newUser.groups.push('ALLUSERS');
           }
       }
       return newUser;
@@ -129,21 +151,31 @@ const controller = function(moneyApiVars) {
           if (userFromApp.displayName) userObject.displayName = userFromApp.displayName;
           if (userFromApp.email) userObject.email = userFromApp.email;
           if (userFromApp.image) userObject.image = userFromApp.image;
+          if (userFromApp.payday) userObject.payday = userFromApp.payday;
+          if (userFromApp.payday) userObject.biography = userFromApp.biography;
+          if (userFromApp.payday) userObject.joinDate = userFromApp.joinDate;
           if (userFromApp.groups) userObject.groups = userFromApp.groups;
-          if (userObject.groups.indexOf('ALL USERS') < 0) {
-            userObject.groups.push('ALL USERS');
+          if (userObject.groups.indexOf('ALLUSERS') < 0) {
+            userObject.groups.push('ALLUSERS');
           }
       }
       return userObject;
   }
 
+  const constructErrReturnObj = function(stubErr, actualErr, textErr) {
+      stubErr.description = textErr;
+      stubErr.userError = actualErr;
+      return stubErr;
+  }
 
   return {
     findUser: findUser,
     findUserByEmail: findUserByEmail,
     findAllUsers: findAllUsers,
+    findAllUsersByGroupId: findAllUsersByGroupId,
     createUser: createUser,
-    updateUser: updateUser
+    updateUser: updateUser,
+    deleteUser: deleteUser
   }
 }
 

@@ -14,6 +14,10 @@ const UserSchema = schema({
         type: String,
         required: true
     },
+    payday: {
+        type: String,
+        required: true
+    },
     biography: {
         type: String,
         required: false
