@@ -41,7 +41,7 @@ const controller = function(moneyApiVars) {
   const findAllUsersByGroupId = function(groupId, done) {
       tonksDEVUser.find({'groups': groupId}, function(err, foundUsers) {
         if (err || !foundUsers) {
-            done(constructErrReturnObj(stdErrObj, err), null);
+            done(constructErrReturnObj(stdErrObj, err, 'error retrieving users for group ' + groupId), null);
         } else {
             done(null, {'userList': constructUserList(foundUsers)});
         }
@@ -54,7 +54,7 @@ const controller = function(moneyApiVars) {
         let newUser = constructUserObjectForSave(reqBody.user);
         newUser.save(function(err, savedUser) {
             if (err) {
-              done(constructErrReturnObj(stdErrObj, err), {'saveStatus': 'failed create'});
+              done(constructErrReturnObj(stdErrObj, err, 'error saving new user'), {'saveStatus': 'failed create'});
             } else {
               done(null, {'saveStatus': 'created', 'user': constructUserObjectForRead(savedUser)});
             }
@@ -69,12 +69,12 @@ const controller = function(moneyApiVars) {
     if (uid && reqBody && reqBody.user) {
       tonksDEVUser.findById(uid, function(err, foundUser) {
           if (err || !foundUser) {
-              done(constructErrReturnObj(stdErrObj, err, 'user could not be found in the database'), null);
+              done(constructErrReturnObj(stdErrObj, err, 'user could not be found in the database'), {'saveStatus': 'failed update'});
           } else {
-              let updateUser = constructUserObjectForUpdate(foundUser, reqBody.user);
-              updateUser.save(function(err, savedUser) {
+              let updatedUser = constructUserObjectForUpdate(foundUser, reqBody.user);
+              updatedUser.save(function(err, savedUser) {
                   if (err) {
-                    done(constructErrReturnObj(stdErrObj, err), {'saveStatus': 'failed update'});
+                    done(constructErrReturnObj(stdErrObj, err, 'user record could not be updated in the database'), {'saveStatus': 'failed update'});
                   } else {
                     done(null, {'saveStatus': 'updated', 'user': constructUserObjectForRead(savedUser)});
                   }
@@ -90,11 +90,11 @@ const controller = function(moneyApiVars) {
   const deleteUser = function(uid, done) {
     tonksDEVUser.findById(uid, function(err, foundUser) {
         if (err || !foundUser) {
-            done(constructErrReturnObj(stdErrObj, err, 'error finding requested user in the database'), null);
+            done(constructErrReturnObj(stdErrObj, err, 'error finding requested user in the database'), {'saveStatus': 'failed delete'});
         } else {
             foundUser.remove(function(err) {
               if (err) {
-                done(constructErrReturnObj(stdErrObj, err, 'error removing user from the database'), null);
+                done(constructErrReturnObj(stdErrObj, err, 'error removing user from the database'), {'saveStatus': 'failed delete'});
               } else {
                 done(null, {'saveStatus': 'deleted'});
               }
@@ -155,7 +155,7 @@ const controller = function(moneyApiVars) {
           if (userFromApp.payday) userObject.biography = userFromApp.biography;
           if (userFromApp.payday) userObject.joinDate = userFromApp.joinDate;
           if (userFromApp.groups) userObject.groups = userFromApp.groups;
-          if (userObject.groups.indexOf('ALLUSERS') < 0) {
+          if (userObject.groups && userObject.groups.indexOf('ALLUSERS') < 0) {
             userObject.groups.push('ALLUSERS');
           }
       }
