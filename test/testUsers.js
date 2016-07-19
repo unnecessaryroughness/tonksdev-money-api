@@ -331,7 +331,7 @@ describe('"User" HTTP testing', function() {
 
     let tstApp, server;
 
-    before(function() {
+    beforeEach(function() {
       process.env.IP = '0.0.0.0';
       process.env.PORT = '8081';
       process.env.MONEYDB_PORT_27017_TCP_ADDR = '172.17.0.2';
@@ -401,7 +401,7 @@ describe('"User" HTTP testing', function() {
           })
       });
 
-      after(function() {
+      afterEach(function() {
         tstApp.stop();
       })
 });
