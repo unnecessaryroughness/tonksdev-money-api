@@ -345,9 +345,9 @@ describe('"User" HTTP testing', function() {
     })
 
     it('should return valid JSON API definition data by running the base app and calling the url /user', function(done) {
-        console.log('/user/allusers');
+        console.log('/user/allusers/');
         server
-          .get('/user/allusers')
+          .get('/user/allusers/')
           .expect('Content-Type', /json/)
           .expect(200)
           .end(function(err, res) {
