@@ -1,17 +1,18 @@
 const debug = require('debug')('tonksDEV:money:api:helpers'),
       debugT = require('debug')('tonksDEV:money:api:term:handlers');
 
-function helpers(moneyApp) {
+function helpers(moneyApi) {
     'use strict';
 
-    let self = moneyApp;
-    moneyApp.variables = {};
+    let self = moneyApi;
+    moneyApi.variables = {};
 
     //Set up server IP address and port # using env variables/defaults.
     const setupVariables = function() {
-        moneyApp.variables.ipaddress = process.env.IP;
-        moneyApp.variables.port      = process.env.PORT;
-        moneyApp.variables.mongourl  = process.env.MONEYDB_PORT_27017_TCP_ADDR+':'+process.env.MONEYDB_PORT_27017_TCP_PORT + '/money?authSource=admin';
+        moneyApi.variables.apiversion = '0.3.0';
+        moneyApi.variables.ipaddress = process.env.IP;
+        moneyApi.variables.port      = process.env.PORT;
+        moneyApi.variables.mongourl  = process.env.MONEYDB_PORT_27017_TCP_ADDR+':'+process.env.MONEYDB_PORT_27017_TCP_PORT + '/money?authSource=admin';
     };
 
     // terminator === the termination handler
@@ -23,9 +24,9 @@ function helpers(moneyApp) {
                        Date(Date.now()), sig);
 
           //close the mongoose connection, if open
-           if (typeof moneyApp.mongoose != 'undefined' && moneyApp.mongoose.connection.readyState != 0) {
+           if (typeof moneyApi.mongoose != 'undefined' && moneyApi.mongoose.connection.readyState != 0) {
               debugT('closing connection to mongodb...');
-              moneyApp.mongoose.connection.close();
+              moneyApi.mongoose.connection.close();
            }
            process.exit(1);
         }
@@ -36,13 +37,13 @@ function helpers(moneyApp) {
     const setupTerminationHandlers = function(){
 
         //  Process on exit and signals.
-        process.on('exit', function() { moneyApp.helperFunctions.terminator(); });
+        process.on('exit', function() { moneyApi.helperFunctions.terminator(); });
 
         // Removed 'SIGPIPE' from the list - bugz 852598.
         ['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT',
          'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'
         ].forEach(function(element, index, array) {
-            process.on(element, function() { moneyApp.helperFunctions.terminator(element); });
+            process.on(element, function() { moneyApi.helperFunctions.terminator(element); });
         });
     };
 

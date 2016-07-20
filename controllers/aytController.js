@@ -14,6 +14,7 @@ const controller = function(moneyApiVars) {
 
       const rtnVal = {
           'application': 'API',
+          'application-version': moneyApiVars.apiversion,
           'database': readyStateMap[mongoose.connection.readyState].toUpperCase(),
           'dbconnection': moneyApiVars.mongourl,
           'environment': moneyApiVars.environment.toUpperCase(),
