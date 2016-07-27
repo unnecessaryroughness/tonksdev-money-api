@@ -39,6 +39,22 @@ const MoneyApi = function() {
             self.mongoose.connect(self.variables.mongourl);
             debug('connecting to database: ' + self.variables.mongourl);
 
+            debug('apikey: ' + self.variables.apikey);
+
+        //verify apikey
+            self.app.use(function(req, res, next) {
+              let apiKey = self.variables.apikey;
+              let suppliedApiKey = req.headers.apikey;
+              let matchedKeys = (apiKey === suppliedApiKey);
+              debug(matchedKeys ? 'MATCHED API KEYS' : 'FAILED TO MATCH API KEYS - REQUEST TERMINATED');
+              if (matchedKeys) {
+                next();
+              } else {
+                let err = new Error('Access Denied');
+                err.status = 403;
+                next(err);
+              }
+            })
 
         //use predefined routers
             let rootRouter = require('../routers/rootRoutes')(self.variables);

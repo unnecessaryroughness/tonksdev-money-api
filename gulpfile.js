@@ -19,7 +19,8 @@ gulp.task('default', function() {
             IP:['0.0.0.0'],
             PORT:['8081'],
             MONEYDB_PORT_27017_TCP_ADDR:['172.17.0.2'],
-            MONEYDB_PORT_27017_TCP_PORT:['27017']
+            MONEYDB_PORT_27017_TCP_PORT:['27017'],
+            API_KEY:['aab37744-bfd8-4d21-9052-6ec73853ee39']
         },
         ignore: ['./node_modules/**']
     })
