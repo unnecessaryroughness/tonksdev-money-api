@@ -1,18 +1,40 @@
 const mongoose = require('mongoose');
-const schema = mongoose.Schema;
+const Schema = mongoose.Schema;
 
-const AccountGroupSchema = schema({
-    groupName: {
-        type: String
+const AccountGroupSchema = Schema({
+    groupCode: {
+        type: String,
+        required: true
     },
     description: {
-        type: String
+        type: String,
+        required: true
     },
     owner: {
-        type: Schema.Types.ObjectId
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: 'user'
     },
-    members: [{type: Schema.Types.ObjectId, ref: 'User'}]
+    members: [{
+                type: Schema.Types.ObjectId,
+                required: true,
+                ref: 'user'
+    }],
+    password: {
+        type: String,
+        required: true
+    },
+    accounts: [{
+                type: Schema.Types.ObjectId,
+                required: true,
+                ref: 'account'
+    }],
+    createdDate: {
+        type: Date,
+        default: Date.now,
+        required: true
+    }
 });
 
 //parameters are: schema-name, schema-object, mongo-collection-name
-module.exports = mongoose.model('AccountGroup', UserSchema, 'accountgroup');
+module.exports = mongoose.model('accountgroup', AccountGroupSchema, 'accountgroup');

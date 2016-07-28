@@ -59,8 +59,10 @@ const MoneyApi = function() {
         //use predefined routers
             let rootRouter = require('../routers/rootRoutes')(self.variables);
             let userRouter = require('../routers/userRoutes')(self.variables);
+            let acctRouter = require('../routers/acctRoutes')(self.variables);
             self.app.use('/', rootRouter);
             self.app.use('/user', userRouter);
+            self.app.use('/account', acctRouter);
 
 
         //default error handler - throw 404
