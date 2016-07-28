@@ -9,7 +9,7 @@ function helpers(moneyApi) {
 
     //Set up server IP address and port # using env variables/defaults.
     const setupVariables = function() {
-        moneyApi.variables.apiversion = '0.3.0';
+        moneyApi.variables.apiversion = '0.3.1';
         moneyApi.variables.ipaddress = process.env.IP;
         moneyApi.variables.port      = process.env.PORT;
         moneyApi.variables.mongourl  = process.env.MONEYDB_PORT_27017_TCP_ADDR+':'+process.env.MONEYDB_PORT_27017_TCP_PORT + '/money?authSource=admin';
