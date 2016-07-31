@@ -1,40 +1,106 @@
 const mongoose = require('mongoose'),
       debug = require('debug')('tonksDEV:money:api:controller:account'),
       account = require('../models/accountModel'),
-      accountGroup = require('../models/accountGroupModel');
+      accountGroup = require('../models/accountGroupModel'),
+      constructErrReturnObj = require('../common/moneyErrorObj');
 
 const controller = function(moneyApiVars) {
   'use strict';
 
-  // const findUser = function(uid, done) {
-  //     tonksDEVUser.findById(uid, function(err, foundUser) {
-  //         if (err || !foundUser) {
-  //             done(constructErrReturnObj(stdErrObj, err), null);
-  //         } else {
-  //             done(null, {'user': constructUserObjectForRead(foundUser)});
-  //         }
-  //     })
-  // }
-  //
-  // const findUserByEmail = function(ueml, done) {
-  //     tonksDEVUser.findOne({'email': ueml}, function(err, foundUser) {
-  //         if (err || !foundUser) {
-  //             done(constructErrReturnObj(stdErrObj, err), null);
-  //         } else {
-  //             done(null, {'user': constructUserObjectForRead(foundUser)});
-  //         }
-  //     })
-  // }
-  //
-  const findAllAccounts = function(done) {
-      account.find({}, function(err, foundAccounts) {
-        if (err || !foundAccounts) {
-            done(constructErrReturnObj(err, 'could not find any account records'), null);
+  const verifyEntitlement = function(userid, accGroupRecord) {
+    let rtnVal = false;
+    if (userid && accGroupRecord) {
+      accGroupRecord.members.forEach(function(member, idx, list) {
+        if (member == userid) {
+          rtnVal = true;
+        }
+      });
+    } else {
+      rtnVal = false;
+    }
+    return rtnVal;
+  }
+
+
+  const findAllAccounts = function(userid, done) {
+      findAllAccountGroups(userid, function(err, acctGroupData) {
+        if (err || !acctGroupData) {
+          done(constructErrReturnObj(err, 'could not find any account records (no groups)', 404), null);
         } else {
-            done(null, {'accountList': constructAccountList(foundAccounts)});
+          let agList = [];
+          acctGroupData.accountGroupList.forEach(function(ag, idx, list) {
+            agList.push(ag.id);
+          })
+          account.find({accountGroup: {$in: agList}}, function(err, foundAccounts) {
+            if (err || !foundAccounts) {
+              done(constructErrReturnObj(err, 'could not find any account records', 404), null);
+            } else {
+              done(null, {'accountList': constructAccountList(foundAccounts)});
+            }
+          })
         }
       })
   }
+
+
+  const findAccount = function(userid, acctid, done) {
+      account.findById(acctid, function(err, foundAccount) {
+          if (err || !foundAccount) {
+              done(constructErrReturnObj(err, 'could not find the requested account', 404), null);
+          } else {
+              accountGroup.findById(foundAccount.accountGroup, function(err, foundAG) {
+                if (verifyEntitlement(userid, foundAG)) {
+                  done(null, {'account': constructAcctObjectForRead(foundAccount)});
+                } else {
+                  done(constructErrReturnObj(err, 'permission denied', 403), null);
+                }
+              })
+          }
+      })
+  }
+
+
+  const findAllAccountGroups = function(userid, done) {
+      accountGroup.find({"members": userid}, function(err, foundGroups) {
+        if (err || !foundGroups) {
+          done(constructErrReturnObj(err, 'user is not a member of any groups', 404), null);
+        } else {
+          done(null, {'accountGroupList': constructAccountGroupList(foundGroups)});
+        }
+      })
+  }
+
+
+  const findAccountGroup = function(userid, groupid, done) {
+      accountGroup.findById(groupid, function(err, foundGroup) {
+          if (err || !foundGroup) {
+              done(constructErrReturnObj(err, 'could not find the requested account group', 404), null);
+          } else {
+              if (verifyEntitlement(userid, foundGroup)) {
+                done(null, {'accountGroup': constructAcctGroupObjectForRead(foundGroup)});
+              } else {
+                done(constructErrReturnObj(err, 'permission denied', 403), null);
+              }
+          }
+      })
+  }
+
+  const findAllAccountsInGroup = function(userid, groupid, done) {
+      findAccountGroup(userid, groupid, function(err, foundGroup) {
+          if (err || !foundGroup) {
+            done(constructErrReturnObj(err, 'could not find the requested account group', 404), null);
+          } else {
+            account.find({accountGroup: foundGroup.accountGroup.id}, function(err, foundAccounts) {
+              if (err || !foundAccounts) {
+                done(constructErrReturnObj(err, 'could not find any account records in requested group', 404), null);
+              } else {
+                done(null, {'accountList': constructAccountList(foundAccounts)});
+              }
+            })
+          }
+      })
+  }
+
   //
   // const findAllUsersByGroupId = function(groupId, done) {
   //     tonksDEVUser.find({'groups': groupId}, function(err, foundUsers) {
@@ -159,21 +225,39 @@ const controller = function(moneyApiVars) {
   //     return userObject;
   // }
 
-  const constructErrReturnObj = function(actualErr, textErr) {
-      let stubErr = {acctError: {}};
-      stubErr.acctError.description = textErr;
-      stubErr.acctError.recdError = actualErr;
-      return stubErr;
+
+  const constructAcctGroupObjectForRead = function(acctGroupFromDB) {
+      let rtnAcctGroup = {};
+      if (acctGroupFromDB) {
+          rtnAcctGroup.id           = acctGroupFromDB._id;
+          rtnAcctGroup.groupCode    = acctGroupFromDB.groupCode;
+          rtnAcctGroup.description  = acctGroupFromDB.description;
+          rtnAcctGroup.owner        = acctGroupFromDB.owner;
+          rtnAcctGroup.members      = acctGroupFromDB.members;
+          rtnAcctGroup.password     = acctGroupFromDB.password;
+          rtnAcctGroup.createdDate  = acctGroupFromDB.createdDate;
+          rtnAcctGroup.links = {};
+      }
+      return rtnAcctGroup;
   }
 
+  const constructAccountGroupList = function(acctGroupListFromDB) {
+      let rtnAcctGroupList = [];
+      if (acctGroupListFromDB && acctGroupListFromDB.length > 0) {
+          acctGroupListFromDB.forEach(function(acctGroup, idx, arr) {
+              rtnAcctGroupList.push(constructAcctGroupObjectForRead(acctGroup));
+          })
+      }
+      return rtnAcctGroupList;
+  }
+
+
   return {
-    // findUser: findUser,
-    // findUserByEmail: findUserByEmail,
-    findAllAccounts: findAllAccounts
-    // findAllUsersByGroupId: findAllUsersByGroupId,
-    // createUser: createUser,
-    // updateUser: updateUser,
-    // deleteUser: deleteUser
+    findAccount: findAccount,
+    findAllAccounts: findAllAccounts,
+    findAllAccountGroups: findAllAccountGroups,
+    findAccountGroup: findAccountGroup,
+    findAllAccountsInGroup: findAllAccountsInGroup
   }
 }
 
