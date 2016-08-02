@@ -23,13 +23,14 @@ const routes = function(moneyApiVars) {
             ]})
         })
         .post(function(req, res, next) {
-            // acctController.createUser(req.body, function(err, data) {
-            //     if (!err && data.saveStatus === 'created') {
-            //         res.status(200).json(data);
-            //     } else {
-            //         res.status(500).json(err);
-            //     }
-            // })
+            acctController.createAccount(req.body, function(err, newAcctData) {
+                if (!err && newAcctData.saveStatus === 'created') {
+                    newAcctData.account = addHATEOS(newAcctData.account, req.headers.host);
+                    res.status(200).json(newAcctData);
+                } else {
+                    res.status(err.number || 500).json(err);
+                }
+            })
         });
 
 
@@ -77,6 +78,20 @@ const routes = function(moneyApiVars) {
           //     }
           // })
       });
+
+
+    acctRouter.route('/group')
+        .post(function(req, res, next) {
+        //     acctController.createAccount(req.body, function(err, newAcctData) {
+        //         if (!err && newAcctData.saveStatus === 'created') {
+        //             newAcctData.account = addHATEOS(newAcctData.account, req.headers.host);
+        //             res.status(200).json(newAcctData);
+        //         } else {
+        //             res.status(err.number || 500).json(err);
+        //         }
+        //     })
+        });
+
 
 
       acctRouter.route('/group/allgroups')

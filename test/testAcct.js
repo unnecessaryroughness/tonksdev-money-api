@@ -255,3 +255,116 @@ describe('"Account" FIND functional testing', function() {
           });
 
 })
+
+
+describe('"Account" CRUD functional testing', function() {
+
+    //DEFINE-VARIABLES
+        let tstCtrl, stubFind, stubFindById, stubGrpFind, stubGrpFindById, stubSave, stubRemove;
+
+        beforeEach(function() {
+            tstCtrl = new ctrl({});
+        });
+
+    //SETUP STUBS
+    before(function() {
+      stubFind        = sinon.stub(account,       'find');
+      stubFindById    = sinon.stub(account,       'findById');
+      stubGrpFind     = sinon.stub(accountGroup,  'find');
+      stubGrpFindById = sinon.stub(accountGroup,  'findById');
+      stubSave        = sinon.stub(account.prototype, 'save');
+    });
+
+    beforeEach(function() {
+      stubFind.yields(null, [{"_id" : "579a5a314a4eff2f21d5a109",
+                              "accountCode" : "XYCURACC",
+                              "accountName" : "XY Bank Current Account",
+                              "bankName" : "XY Bank",
+                              "accountGroup" : "579a57df4a4eff2f21d5a108",
+                              "balance" : 999.99,
+                              "createdDate" : "2016-07-28"
+                            }]);
+      stubGrpFind.yields(null, [{
+                              "members": [ "5770067d85e95a5378fb948e", "5783f4fb44daf4b9671bb304" ],
+                              "accounts": [],
+                              "createdDate": "2016-07-28",
+                              "groupCode": 'TEST',
+                              "password": 'testing',
+                              "owner": "5770067d85e95a5378fb948e",
+                              "description": 'Testing account group',
+                              "_id": "579a57df4a4eff2f21d5a108"
+                            }]);
+
+      stubFindById.yields(null, {"_id" : "579a5a314a4eff2f21d5a109",
+                              "accountCode" : "XYCURACC",
+                              "accountName" : "XY Bank Current Account",
+                              "bankName" : "XY Bank",
+                              "accountGroup" : "579a57df4a4eff2f21d5a108",
+                              "balance" : 999.99,
+                              "createdDate" : "2016-07-28"
+                            });
+      stubGrpFindById.yields(null, {
+                              "members": [ "5770067d85e95a5378fb948e", "5783f4fb44daf4b9671bb304" ],
+                              "accounts": [],
+                              "createdDate": "2016-07-28",
+                              "groupCode": 'TEST',
+                              "password": 'testing',
+                              "owner": "5770067d85e95a5378fb948e",
+                              "description": 'Testing account group',
+                              "_id": "579a57df4a4eff2f21d5a108"
+                            });
+      stubSave.yields(null, {
+        "_id" : "579a5a314a4eff2f21d5a109",
+        "accountCode" : "XYCURACC",
+        "accountName" : "XY Bank Current Account",
+        "bankName" : "XY Bank",
+        "accountGroup" : "579a57df4a4eff2f21d5a108",
+        "balance" : 999.99,
+        "createdDate" : "2016-07-28"
+      });
+    });
+
+    //CREATE-ACCOUNT
+        it('should return valid JSON data from the createAccount function', function(done) {
+            let createBody = {"account": {"accountCode": "RAINYDAY", "accountName": "Rainy Day Savings Account", "bankName": "Halifax",
+                              "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 4567.89, "createdDate": "2016-08-02"} };
+
+            tstCtrl.createAccount(createBody, function(err, data) {
+                // console.log(data);
+                expect(err, 'error was returned').to.be.null;
+                expect(data, 'no data was returned').to.not.be.null;
+                data.saveStatus.should.equal('created');
+                expect(data.account.id, 'no ID for the created account').to.exist;
+                expect(data.account.accountCode, 'no accountCode for the created account').to.exist;
+                expect(data.account.accountGroup, 'no accountGroup for the created account').to.exist;
+                expect(data.account.balance, 'no balance for the created account').to.exist;
+                expect(data.account.createdDate, 'no createdDate for the created account').to.exist;
+                data.account.id.should.equal('579a5a314a4eff2f21d5a109')
+                data.account.accountCode.should.equal('XYCURACC')
+                done();
+            })
+        })
+
+        it('should return valid JSON error data from the createAccont function if there was a problem saving', function(done) {
+          let createBody = {"account": {"accountCode": "RAINYDAY", "accountName": "Rainy Day Savings Account", "bankName": "Halifax",
+                            "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 4567.89, "createdDate": "2016-08-02"} };
+
+            stubSave.yields({errCode: 1234, errDesc: 'made up error'}, null);
+            tstCtrl.createAccount(createBody, function(err, data) {
+                console.log(err, data);
+                expect(err, 'no error was returned').to.not.be.null;
+                expect(data, 'some data was returned').to.not.be.null;
+                data.saveStatus.should.equal('failed create');
+                done();
+            })
+        })
+
+    //RESET-STUBS
+        after(function() {
+          accountGroup.findById.restore();
+          accountGroup.find.restore();
+          account.findById.restore();
+          account.find.restore();
+          account.prototype.save.restore();
+        });
+});

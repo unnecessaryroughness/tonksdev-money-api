@@ -101,33 +101,21 @@ const controller = function(moneyApiVars) {
       })
   }
 
-  //
-  // const findAllUsersByGroupId = function(groupId, done) {
-  //     tonksDEVUser.find({'groups': groupId}, function(err, foundUsers) {
-  //       if (err || !foundUsers) {
-  //           done(constructErrReturnObj(stdErrObj, err, 'error retrieving users for group ' + groupId), null);
-  //       } else {
-  //           done(null, {'userList': constructUserList(foundUsers)});
-  //       }
-  //     })
-  // }
-  //
-  //
-  // const createUser = function(reqBody, done) {
-  //     if (reqBody.user.displayName && reqBody.user.email) {
-  //       let newUser = constructUserObjectForSave(reqBody.user);
-  //       newUser.save(function(err, savedUser) {
-  //           if (err) {
-  //             done(constructErrReturnObj(stdErrObj, err, 'error saving new user'), {'saveStatus': 'failed create'});
-  //           } else {
-  //             done(null, {'saveStatus': 'created', 'user': constructUserObjectForRead(savedUser)});
-  //           }
-  //       });
-  //     } else {
-  //       done(constructErrReturnObj(stdErrObj, 'displayName and email address were not supplied'), {'saveStatus': 'failed'});
-  //     }
-  // }
-  //
+  const createAccount = function(reqBody, done) {
+      if (reqBody.account.accountCode && reqBody.account.accountGroup) {
+        let newAcct = constructAcctObjectForSave(reqBody.account);
+        newAcct.save(function(err, savedAcct) {
+            if (err) {
+              done(constructErrReturnObj(err, 'error saving new account', 500), {'saveStatus': 'failed create'});
+            } else {
+              done(null, {'saveStatus': 'created', 'account': constructAcctObjectForRead(savedAcct)});
+            }
+        });
+      } else {
+        done(constructErrReturnObj(err, 'accountCode and accountGroup were not supplied', 500), {'saveStatus': 'failed'});
+      }
+  }
+
   //
   // const updateUser = function(uid, reqBody, done) {
   //   if (uid && reqBody && reqBody.user) {
@@ -190,6 +178,19 @@ const controller = function(moneyApiVars) {
           })
       }
       return rtnAcctList;
+  }
+
+  const constructAcctObjectForSave = function(acctFromApp) {
+    let newAcct = new account;
+    if (acctFromApp) {
+        newAcct.accountCode = acctFromApp.accountCode;
+        newAcct.accountName = acctFromApp.accountName;
+        newAcct.bankName    = acctFromApp.bankName;
+        newAcct.accountGroup = acctFromApp.accountGroup;
+        newAcct.balance     = acctFromApp.balance;
+        newAcct.createdDate = acctFromApp.createdDate;
+    }
+    return newAcct;
   }
 
   // const constructUserObjectForSave = function(userFromApp) {
@@ -257,7 +258,8 @@ const controller = function(moneyApiVars) {
     findAllAccounts: findAllAccounts,
     findAllAccountGroups: findAllAccountGroups,
     findAccountGroup: findAccountGroup,
-    findAllAccountsInGroup: findAllAccountsInGroup
+    findAllAccountsInGroup: findAllAccountsInGroup,
+    createAccount: createAccount
   }
 }
 
