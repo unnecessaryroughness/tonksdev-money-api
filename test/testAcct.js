@@ -260,7 +260,7 @@ describe('"Account" FIND functional testing', function() {
 describe('"Account" CRUD functional testing', function() {
 
     //DEFINE-VARIABLES
-        let tstCtrl, stubFind, stubFindById, stubGrpFind, stubGrpFindById, stubSave, stubRemove;
+        let tstCtrl, stubFind, stubFindById, stubGrpFind, stubGrpFindById, stubSave, stubGrpSave, stubRemove;
 
         beforeEach(function() {
             tstCtrl = new ctrl({});
@@ -273,6 +273,7 @@ describe('"Account" CRUD functional testing', function() {
       stubGrpFind     = sinon.stub(accountGroup,  'find');
       stubGrpFindById = sinon.stub(accountGroup,  'findById');
       stubSave        = sinon.stub(account.prototype, 'save');
+      stubGrpSave     = sinon.stub(accountGroup.prototype, 'save');
     });
 
     beforeEach(function() {
@@ -322,6 +323,19 @@ describe('"Account" CRUD functional testing', function() {
         "balance" : 999.99,
         "createdDate" : "2016-07-28"
       });
+
+      stubGrpSave.yields(null, {
+        "_id": "57a24d3d962832317a82e15a",
+        "groupCode": "TEST",
+        "description": "Test account group",
+        "owner": "5770067d85e95a5378fb948e",
+        "members": [
+          "5770067d85e95a5378fb948e"
+        ],
+        "password": "test",
+        "createdDate": "2016-07-03T00:00:00.000Z"
+      });
+
     });
 
     //CREATE-ACCOUNT
@@ -351,13 +365,54 @@ describe('"Account" CRUD functional testing', function() {
 
             stubSave.yields({errCode: 1234, errDesc: 'made up error'}, null);
             tstCtrl.createAccount(createBody, function(err, data) {
-                console.log(err, data);
+                // console.log(err, data);
                 expect(err, 'no error was returned').to.not.be.null;
                 expect(data, 'some data was returned').to.not.be.null;
                 data.saveStatus.should.equal('failed create');
                 done();
             })
         })
+
+
+
+    //CREATE-ACCOUNT-GROUP
+        it('should return valid JSON data from the createAccountGroup function', function(done) {
+            let createBody = {"accountGroup": {"groupCode": "TEST", "description": "Test account group", "owner": "5770067d85e95a5378fb948e",
+                                "members": ["5770067d85e95a5378fb948e"], "password": "test"}}
+
+            tstCtrl.createAccountGroup(createBody, function(err, data) {
+                // console.log(err, data);
+                expect(err, 'error was returned').to.be.null;
+                expect(data, 'no data was returned').to.not.be.null;
+                data.saveStatus.should.equal('created');
+                expect(data.accountGroup.id, 'no ID for the created account').to.exist;
+                expect(data.accountGroup.groupCode, 'no groupCode for the created account').to.exist;
+                expect(data.accountGroup.description, 'no description for the created account').to.exist;
+                expect(data.accountGroup.owner, 'no owner for the created account').to.exist;
+                expect(data.accountGroup.members, 'no members for the created account').to.exist;
+                expect(data.accountGroup.password, 'no password for the created account').to.exist;
+                expect(data.accountGroup.createdDate, 'no createdDate for the created account').to.exist;
+                data.accountGroup.id.should.equal('57a24d3d962832317a82e15a')
+                data.accountGroup.groupCode.should.equal('TEST')
+                done();
+            })
+        })
+
+        it('should return valid JSON error data from the createAccountGroup function if there was a problem saving', function(done) {
+          let createBody = {"accountGroup": {"groupCode": "TEST", "description": "Test account group", "owner": "5770067d85e95a5378fb948e",
+                              "members": ["5770067d85e95a5378fb948e"], "password": "test"}}
+
+            stubGrpSave.yields({errCode: 1234, errDesc: 'made up error'}, null);
+            tstCtrl.createAccountGroup(createBody, function(err, data) {
+                // console.log(err, data);
+                expect(err, 'no error was returned').to.not.be.null;
+                expect(data, 'some data was returned').to.not.be.null;
+                data.saveStatus.should.equal('failed create');
+                done();
+            })
+        })
+
+
 
     //RESET-STUBS
         after(function() {

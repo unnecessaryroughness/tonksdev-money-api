@@ -24,11 +24,6 @@ const AccountGroupSchema = Schema({
         type: String,
         required: true
     },
-    accounts: [{
-                type: Schema.Types.ObjectId,
-                required: true,
-                ref: 'account'
-    }],
     createdDate: {
         type: Date,
         default: Date.now,

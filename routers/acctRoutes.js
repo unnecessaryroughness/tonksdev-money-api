@@ -82,14 +82,14 @@ const routes = function(moneyApiVars) {
 
     acctRouter.route('/group')
         .post(function(req, res, next) {
-        //     acctController.createAccount(req.body, function(err, newAcctData) {
-        //         if (!err && newAcctData.saveStatus === 'created') {
-        //             newAcctData.account = addHATEOS(newAcctData.account, req.headers.host);
-        //             res.status(200).json(newAcctData);
-        //         } else {
-        //             res.status(err.number || 500).json(err);
-        //         }
-        //     })
+            acctController.createAccountGroup(req.body, function(err, newGroupData) {
+                if (!err && newGroupData.saveStatus === 'created') {
+                    newGroupData.account = addHATEOS(newGroupData.account, req.headers.host);
+                    res.status(200).json(newGroupData);
+                } else {
+                    res.status(err.number || 500).json(err);
+                }
+            })
         });
 
 

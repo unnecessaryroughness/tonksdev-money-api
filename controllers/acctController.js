@@ -2,7 +2,8 @@ const mongoose = require('mongoose'),
       debug = require('debug')('tonksDEV:money:api:controller:account'),
       account = require('../models/accountModel'),
       accountGroup = require('../models/accountGroupModel'),
-      constructErrReturnObj = require('../common/moneyErrorObj');
+      constructErrReturnObj = require('../common/moneyErrorObj'),
+      dateFuncs = require('../common/dateFunctions')();
 
 const controller = function(moneyApiVars) {
   'use strict';
@@ -112,7 +113,22 @@ const controller = function(moneyApiVars) {
             }
         });
       } else {
-        done(constructErrReturnObj(err, 'accountCode and accountGroup were not supplied', 500), {'saveStatus': 'failed'});
+        done(constructErrReturnObj(null, 'accountCode and accountGroup were not supplied', 500), {'saveStatus': 'failed'});
+      }
+  }
+
+  const createAccountGroup = function(reqBody, done) {
+      if (reqBody.accountGroup.groupCode && reqBody.accountGroup.owner && reqBody.accountGroup.password) {
+        let newGroup = constructAcctGroupObjectForSave(reqBody.accountGroup);
+        newGroup.save(function(err, savedGroup) {
+            if (err) {
+              done(constructErrReturnObj(err, 'error saving new account group', 500), {'saveStatus': 'failed create'});
+            } else {
+              done(null, {'saveStatus': 'created', 'accountGroup': constructAcctGroupObjectForRead(savedGroup)});
+            }
+        });
+      } else {
+        done(constructErrReturnObj(null, 'groupCode, groupOwner and password were not supplied', 500), {'saveStatus': 'failed'});
       }
   }
 
@@ -184,11 +200,11 @@ const controller = function(moneyApiVars) {
     let newAcct = new account;
     if (acctFromApp) {
         newAcct.accountCode = acctFromApp.accountCode;
-        newAcct.accountName = acctFromApp.accountName;
-        newAcct.bankName    = acctFromApp.bankName;
+        newAcct.accountName = acctFromApp.accountName || 'Unnamed account';
+        newAcct.bankName    = acctFromApp.bankName || 'Unnamed bank';
         newAcct.accountGroup = acctFromApp.accountGroup;
-        newAcct.balance     = acctFromApp.balance;
-        newAcct.createdDate = acctFromApp.createdDate;
+        newAcct.balance     = acctFromApp.balance || 0.00;
+        newAcct.createdDate = acctFromApp.createdDate || dateFuncs.getTodaysDateYMD();
     }
     return newAcct;
   }
@@ -252,6 +268,19 @@ const controller = function(moneyApiVars) {
       return rtnAcctGroupList;
   }
 
+  const constructAcctGroupObjectForSave = function(groupFromApp) {
+    let newGroup = new accountGroup;
+    if (groupFromApp) {
+        newGroup.groupCode    = groupFromApp.groupCode;
+        newGroup.description  = groupFromApp.description || 'Unnamed account group';
+        newGroup.owner        = groupFromApp.owner;
+        newGroup.members      = groupFromApp.members || [groupFromApp.owner];
+        newGroup.password     = groupFromApp.password;
+        newGroup.createdDate  = groupFromApp.createdDate || dateFuncs.getTodaysDateYMD();
+    }
+    return newGroup;
+  }
+
 
   return {
     findAccount: findAccount,
@@ -259,7 +288,8 @@ const controller = function(moneyApiVars) {
     findAllAccountGroups: findAllAccountGroups,
     findAccountGroup: findAccountGroup,
     findAllAccountsInGroup: findAllAccountsInGroup,
-    createAccount: createAccount
+    createAccount: createAccount,
+    createAccountGroup: createAccountGroup
   }
 }
 
