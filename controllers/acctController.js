@@ -117,6 +117,40 @@ const controller = function(moneyApiVars) {
       }
   }
 
+
+  const updateAccount = function(uid, acctid, reqBody, done) {
+    if (uid && acctid && reqBody) {
+      account.findById(acctid, function(err, foundAccount) {
+          if (err || !foundAccount) {
+              done(constructErrReturnObj(err, 'account could not be found in the database', 404), {'saveStatus': 'failed update'});
+          } else {
+            //verify entitlement to update by checking if account is in an account group of which the user is a member
+            accountGroup.findById(foundAccount.accountGroup, function(err, foundAG) {
+              if (err || !foundAG) {
+                done(constructErrReturnObj(err, 'could not find account group for requested account', 404), {'saveStatus': 'failed update'});
+              } else {
+                if (verifyEntitlement(uid, foundAG)) {
+                  let updatedAccount = constructAcctObjectForUpdate(foundAccount, reqBody.account);
+                  updatedAccount.save(function(err, savedAccount) {
+                      if (err) {
+                        done(constructErrReturnObj(err, 'account record could not be updated in the database', 400), {'saveStatus': 'failed update'});
+                      } else {
+                        done(null, {'saveStatus': 'updated', 'account': constructAcctObjectForRead(savedAccount)});
+                      }
+                  })
+                } else {
+                  done(constructErrReturnObj(err, 'permission denied', 403), null);
+                }
+              }
+          })
+        }
+      })
+    } else {
+      done(constructErrReturnObj('No user ID was supplied, or no account id was supplied, or no account details were supplied', 400), null);
+    }
+  }
+
+
   const createAccountGroup = function(reqBody, done) {
       if (reqBody.accountGroup.groupCode && reqBody.accountGroup.owner && reqBody.accountGroup.password) {
         let newGroup = constructAcctGroupObjectForSave(reqBody.accountGroup);
@@ -132,29 +166,9 @@ const controller = function(moneyApiVars) {
       }
   }
 
-  //
-  // const updateUser = function(uid, reqBody, done) {
-  //   if (uid && reqBody && reqBody.user) {
-  //     tonksDEVUser.findById(uid, function(err, foundUser) {
-  //         if (err || !foundUser) {
-  //             done(constructErrReturnObj(stdErrObj, err, 'user could not be found in the database'), {'saveStatus': 'failed update'});
-  //         } else {
-  //             let updatedUser = constructUserObjectForUpdate(foundUser, reqBody.user);
-  //             updatedUser.save(function(err, savedUser) {
-  //                 if (err) {
-  //                   done(constructErrReturnObj(stdErrObj, err, 'user record could not be updated in the database'), {'saveStatus': 'failed update'});
-  //                 } else {
-  //                   done(null, {'saveStatus': 'updated', 'user': constructUserObjectForRead(savedUser)});
-  //                 }
-  //             })
-  //         }
-  //     })
-  //   } else {
-  //     done(constructErrReturnObj(stdErrObj, 'No user supplied, or no user ID was supplied'), null);
-  //   }
-  // }
-  //
-  //
+
+
+
   // const deleteUser = function(uid, done) {
   //   tonksDEVUser.findById(uid, function(err, foundUser) {
   //       if (err || !foundUser) {
@@ -209,38 +223,17 @@ const controller = function(moneyApiVars) {
     return newAcct;
   }
 
-  // const constructUserObjectForSave = function(userFromApp) {
-  //     let newUser = new tonksDEVUser;
-  //     if (userFromApp) {
-  //         newUser.displayName = userFromApp.displayName;
-  //         newUser.email = userFromApp.email;
-  //         newUser.image = userFromApp.image || '';
-  //         newUser.payday = userFromApp.payday || 27;
-  //         newUser.biography = userFromApp.biography || '';
-  //         newUser.joinDate = userFromApp.joinDate || '2016-01-01';
-  //         newUser.groups = userFromApp.groups || [];
-  //         if (newUser.groups.indexOf('ALLUSERS') < 0) {
-  //           newUser.groups.push('ALLUSERS');
-  //         }
-  //     }
-  //     return newUser;
-  // }
-  //
-  // const constructUserObjectForUpdate = function(userObject, userFromApp) {
-  //     if (userFromApp) {
-  //         if (userFromApp.displayName) userObject.displayName = userFromApp.displayName;
-  //         if (userFromApp.email) userObject.email = userFromApp.email;
-  //         if (userFromApp.image) userObject.image = userFromApp.image;
-  //         if (userFromApp.payday) userObject.payday = userFromApp.payday;
-  //         if (userFromApp.payday) userObject.biography = userFromApp.biography;
-  //         if (userFromApp.payday) userObject.joinDate = userFromApp.joinDate;
-  //         if (userFromApp.groups) userObject.groups = userFromApp.groups;
-  //         if (userObject.groups && userObject.groups.indexOf('ALLUSERS') < 0) {
-  //           userObject.groups.push('ALLUSERS');
-  //         }
-  //     }
-  //     return userObject;
-  // }
+
+  const constructAcctObjectForUpdate = function(acctObject, acctFromApp) {
+      if (acctFromApp) {
+          if (acctFromApp.accountCode)  acctObject.accountCode  = acctFromApp.accountCode;
+          if (acctFromApp.accountName)  acctObject.accountName  = acctFromApp.accountName;
+          if (acctFromApp.bankName)     acctObject.bankName     = acctFromApp.bankName;
+          if (acctFromApp.accountGroup) acctObject.accountGroup = acctFromApp.accountGroup;
+          if (acctFromApp.balance)      acctObject.balance      = acctFromApp.balance;
+      }
+      return acctObject;
+  }
 
 
   const constructAcctGroupObjectForRead = function(acctGroupFromDB) {
@@ -289,7 +282,8 @@ const controller = function(moneyApiVars) {
     findAccountGroup: findAccountGroup,
     findAllAccountsInGroup: findAllAccountsInGroup,
     createAccount: createAccount,
-    createAccountGroup: createAccountGroup
+    createAccountGroup: createAccountGroup,
+    updateAccount: updateAccount
   }
 }
 

@@ -61,13 +61,13 @@ const routes = function(moneyApiVars) {
           })
         })
       .put(function(req, res, next) {
-          // userController.updateUser(req.params.uid, req.body, function(err, data) {
-          //   if (!err && data.saveStatus === 'updated') {
-          //       res.status(200).json(data);
-          //   } else {
-          //       res.status(500).json(err);
-          //   }
-          // })
+          acctController.updateAccount(req.headers.userid, req.params.acctid, req.body, function(err, data) {
+            if (err || !data || data.saveStatus !== 'updated') {
+              res.status(err.number || 500).json({"error": "error updating account", "acctid":req.params.acctid, "errDetails" : err});
+            } else {
+              res.status(200).json(data);
+            }
+          })
       })
       .delete(function(req, res, next) {
           // userController.deleteUser(req.params.uid, function(err, data) {

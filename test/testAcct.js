@@ -374,6 +374,123 @@ describe('"Account" CRUD functional testing', function() {
         })
 
 
+    //UPDATE-ACCOUNT
+        it('should return valid JSON data from the updateAccount function', function(done) {
+            let updateBody = {"account": {"accountCode": "RAINYDAYXXX", "accountName": "Rainy Day Savings AccountXXXX", "bankName": "HalifaxXXX",
+                              "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 111.89} };
+
+            let foundAcct = new account;
+            foundAcct.accountCode = "RAINYDAY";
+            foundAcct.accountName = "Rainy Day Savings Account";
+            foundAcct.bankName = "Halifax";
+            foundAcct.accountGroup = "579a57df4a4eff2f21d5a108";
+            foundAcct.balance = 1234.56;
+            foundAcct.createdDate = "2016-08-03";
+            stubFindById.yields(null, foundAcct);
+
+            stubSave.yields(null, {
+              "_id" : "579a5a314a4eff2f21d5a109",
+              "accountCode" : "RAINYDAYXXX",
+              "accountName" : "Rainy Day Savings AccountXXXX",
+              "bankName" : "HalifaxXXX",
+              "accountGroup" : "579a57df4a4eff2f21d5a108",
+              "balance" : 111.89,
+              "createdDate" : "2016-08-03"
+            });
+
+            tstCtrl.updateAccount('5770067d85e95a5378fb948e', '579a5a314a4eff2f21d5a109', updateBody, function(err, data) {
+                // console.log(data);
+                expect(err, 'error was returned').to.be.null;
+                expect(data, 'no data was returned').to.not.be.null;
+                data.saveStatus.should.equal('updated');
+                expect(data.account.id, 'no ID for the updated account').to.exist;
+                expect(data.account.accountCode, 'no accountCode for the updated account').to.exist;
+                expect(data.account.accountGroup, 'no accountGroup for the updated account').to.exist;
+                expect(data.account.balance, 'no balance for the updated account').to.exist;
+                expect(data.account.createdDate, 'no createdDate for the updated account').to.exist;
+                data.account.id.should.equal('579a5a314a4eff2f21d5a109');
+                data.account.accountCode.should.equal('RAINYDAYXXX');
+                data.account.accountName.should.equal('Rainy Day Savings AccountXXXX');
+                data.account.bankName.should.equal('HalifaxXXX');
+                data.account.balance.should.equal(111.89);
+                done();
+            })
+        })
+        it('should return valid JSON error data from the updateAccount function if there was a problem finding the record to save', function(done) {
+          let updateBody = {"account": {"accountCode": "RAINYDAYXXX", "accountName": "Rainy Day Savings AccountXXXX", "bankName": "HalifaxXXX",
+                            "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 111.89} };
+
+            let foundAcct = null;
+            stubFindById.yields(null, foundAcct);
+
+            stubSave.yields({errCode: 1234, errDesc: 'made up error'}, null);
+            tstCtrl.updateAccount('5770067d85e95a5378fb948e', '579a5a314a4eff2f21d5a109', updateBody, function(err, data) {
+                // console.log(err, data);
+                expect(err, 'no error was returned').to.not.be.null;
+                expect(data, 'some data was returned').to.not.be.null;
+                data.saveStatus.should.equal('failed update');
+                done();
+            })
+        })
+        it('should return valid JSON error data from the updateAccount function if there was a problem saving', function(done) {
+          let updateBody = {"account": {"accountCode": "RAINYDAYXXX", "accountName": "Rainy Day Savings AccountXXXX", "bankName": "HalifaxXXX",
+                            "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 111.89} };
+
+            let foundAcct = new account;
+            foundAcct.accountCode = "RAINYDAY";
+            foundAcct.accountName = "Rainy Day Savings Account";
+            foundAcct.bankName = "Halifax";
+            foundAcct.accountGroup = "579a57df4a4eff2f21d5a108";
+            foundAcct.balance = 1234.56;
+            foundAcct.createdDate = "2016-08-03";
+            stubFindById.yields(null, foundAcct);
+
+            stubSave.yields({errCode: 1234, errDesc: 'made up error'}, null);
+            tstCtrl.updateAccount('5770067d85e95a5378fb948e', '579a5a314a4eff2f21d5a109', updateBody, function(err, data) {
+                // console.log(err, data);
+                expect(err, 'no error was returned').to.not.be.null;
+                expect(data, 'some data was returned').to.not.be.null;
+                data.saveStatus.should.equal('failed update');
+                done();
+            })
+        })
+        it('should return valid JSON error data from the updateAccount function if the user didnt have permission to save', function(done) {
+          let updateBody = {"account": {"accountCode": "RAINYDAYXXX", "accountName": "Rainy Day Savings AccountXXXX", "bankName": "HalifaxXXX",
+                            "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 111.89} };
+
+            let foundAcct = new account;
+            foundAcct.accountCode = "RAINYDAY";
+            foundAcct.accountName = "Rainy Day Savings Account";
+            foundAcct.bankName = "Halifax";
+            foundAcct.accountGroup = "579a57df4a4eff2f21d5a108";
+            foundAcct.balance = 1234.56;
+            foundAcct.createdDate = "2016-08-03";
+            stubFindById.yields(null, foundAcct);
+
+            stubSave.yields(null, {
+              "_id" : "579a5a314a4eff2f21d5a109",
+              "accountCode" : "RAINYDAYXXX",
+              "accountName" : "Rainy Day Savings AccountXXXX",
+              "bankName" : "HalifaxXXX",
+              "accountGroup" : "579a57df4a4eff2f21d5a108",
+              "balance" : 111.89,
+              "createdDate" : "2016-08-03"
+            });
+
+            tstCtrl.updateAccount('xxxxxxxxxxxxxxxxx', '579a5a314a4eff2f21d5a109', updateBody, function(err, data) {
+                // console.log(err, data);
+                expect(err, 'no error was returned').to.not.be.null;
+                expect(data, 'some data was returned').to.be.null;
+                done();
+            })
+        })
+
+
+
+
+
+
+
 
     //CREATE-ACCOUNT-GROUP
         it('should return valid JSON data from the createAccountGroup function', function(done) {
