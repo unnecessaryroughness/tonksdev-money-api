@@ -62,7 +62,7 @@ const routes = function(moneyApiVars) {
         })
       .put(function(req, res, next) {
           acctController.updateAccount(req.headers.userid, req.params.acctid, req.body, function(err, data) {
-            if (err || !data || data.saveStatus !== 'updated') {
+            if (err || !data || !data.saveStatus || data.saveStatus !== 'updated') {
               res.status(err.number || 500).json({"error": "error updating account", "acctid":req.params.acctid, "errDetails" : err});
             } else {
               res.status(200).json(data);
@@ -84,7 +84,7 @@ const routes = function(moneyApiVars) {
         .post(function(req, res, next) {
             acctController.createAccountGroup(req.body, function(err, newGroupData) {
                 if (!err && newGroupData.saveStatus === 'created') {
-                    newGroupData.account = addHATEOS(newGroupData.account, req.headers.host);
+                    // newGroupData.account = addHATEOS(newGroupData.account, req.headers.host);
                     res.status(200).json(newGroupData);
                 } else {
                     res.status(err.number || 500).json(err);
@@ -120,22 +120,22 @@ const routes = function(moneyApiVars) {
             })
           })
         .put(function(req, res, next) {
-            // userController.updateUser(req.params.uid, req.body, function(err, data) {
-            //   if (!err && data.saveStatus === 'updated') {
-            //       res.status(200).json(data);
-            //   } else {
-            //       res.status(500).json(err);
-            //   }
-            // })
+            acctController.updateAccountGroup(req.headers.userid, req.params.accgid, req.body, function(err, acctGroupData) {
+              if (err || !acctGroupData || !acctGroupData.saveStatus || acctGroupData.saveStatus !== 'updated') {
+                  res.status(err.number || 400).json({"error": "error updating accountgroup", "groupid":req.params.accgid, "errDetails" : err});
+              } else {
+                  res.status(200).json(acctGroupData);
+              }
+            })
         })
         .delete(function(req, res, next) {
-            // userController.deleteUser(req.params.uid, function(err, data) {
-            //     if(!err && data.saveStatus === 'deleted') {
-            //         res.status(200).json(data);
-            //     } else {
-            //         res.status(500).json(err);
-            //     }
-            // })
+            acctController.deleteAccountGroup(req.headers.userid, req.params.accgid, req.body.accountGroup.password, function(err, acctGroupData) {
+                if (err || !acctGroupData || !acctGroupData.saveStatus || acctGroupData.saveStatus !== 'deleted') {
+                    res.status(err.number || 400).json({"error": "error removing accountgroup", "groupid":req.params.accgid, "errDetails" : err});
+                } else {
+                    res.status(200).json(acctGroupData);
+                }
+            })
         });
 
 

@@ -260,7 +260,7 @@ describe('"Account" FIND functional testing', function() {
 describe('"Account" CRUD functional testing', function() {
 
     //DEFINE-VARIABLES
-        let tstCtrl, stubFind, stubFindById, stubGrpFind, stubGrpFindById, stubSave, stubGrpSave, stubRemove;
+        let tstCtrl, stubFind, stubFindById, stubGrpFind, stubGrpFindById, stubSave, stubGrpSave, stubRemove, stubGrpRemove;
 
         beforeEach(function() {
             tstCtrl = new ctrl({});
@@ -274,6 +274,7 @@ describe('"Account" CRUD functional testing', function() {
       stubGrpFindById = sinon.stub(accountGroup,  'findById');
       stubSave        = sinon.stub(account.prototype, 'save');
       stubGrpSave     = sinon.stub(accountGroup.prototype, 'save');
+      stubGrpRemove   = sinon.stub(accountGroup.prototype, 'remove');
     });
 
     beforeEach(function() {
@@ -336,6 +337,9 @@ describe('"Account" CRUD functional testing', function() {
         "createdDate": "2016-07-03T00:00:00.000Z"
       });
 
+      stubGrpRemove.yields(null, {
+          "removed": 1
+      })
     });
 
     //CREATE-ACCOUNT
@@ -399,7 +403,7 @@ describe('"Account" CRUD functional testing', function() {
             });
 
             tstCtrl.updateAccount('5770067d85e95a5378fb948e', '579a5a314a4eff2f21d5a109', updateBody, function(err, data) {
-                // console.log(data);
+                //console.log(data);
                 expect(err, 'error was returned').to.be.null;
                 expect(data, 'no data was returned').to.not.be.null;
                 data.saveStatus.should.equal('updated');
@@ -498,7 +502,7 @@ describe('"Account" CRUD functional testing', function() {
                                 "members": ["5770067d85e95a5378fb948e"], "password": "test"}}
 
             tstCtrl.createAccountGroup(createBody, function(err, data) {
-                // console.log(err, data);
+                //console.log(err, data);
                 expect(err, 'error was returned').to.be.null;
                 expect(data, 'no data was returned').to.not.be.null;
                 data.saveStatus.should.equal('created');
@@ -529,6 +533,199 @@ describe('"Account" CRUD functional testing', function() {
             })
         })
 
+
+    //UPDATE-ACCOUNT-GROUP
+        it('should return valid JSON data from the updateAccountGroup function', function(done) {
+            let updateBody = {"accountGroup": {"groupCode": "TESTING", "description": "Test account group update", "owner": "5770067d85e95a5378fb948e",
+                              "members": ["5770067d85e95a5378fb948e"], "password": "test1234"}}
+
+            let foundGroup = new accountGroup;
+            foundGroup._id = "57a24d3d962832317a82e15a";
+            foundGroup.groupCode = "TEST";
+            foundGroup.description = "Test account group";
+            foundGroup.owner = "5770067d85e95a5378fb948e";
+            foundGroup.members = ["579a57df4a4eff2f21d5a108", "5770067d85e95a5378fb948e"];
+            foundGroup.password = "testxyz";
+            foundGroup.createdDate = "2016-08-03";
+            stubGrpFindById.yields(null, foundGroup);
+
+            stubGrpSave.yields(null, {
+              "_id": "57a24d3d962832317a82e15a",
+              "groupCode": "TESTING",
+              "description": "Test account group update",
+              "owner": "5770067d85e95a5378fb948e",
+              "members": [
+                "5770067d85e95a5378fb948e"
+              ],
+              "password": "test1234",
+              "createdDate": "2016-08-03T00:00:00.000Z"
+            });
+
+            tstCtrl.updateAccountGroup('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', updateBody, function(err, data) {
+                // console.log(err, data);
+                expect(err, 'error was returned').to.be.null;
+                expect(data, 'no data was returned').to.not.be.null;
+                data.saveStatus.should.equal('updated');
+                expect(data.accountGroup.id, 'no ID for the updated account').to.exist;
+                expect(data.accountGroup.groupCode, 'no groupCode for the updated accountgroup').to.exist;
+                expect(data.accountGroup.description, 'no description for the updated accountgroup').to.exist;
+                expect(data.accountGroup.members, 'no members for the updated accountgroup').to.exist;
+                expect(data.accountGroup.password, 'no password for the updated accountgroup').to.exist;
+                data.accountGroup.id.should.equal('57a24d3d962832317a82e15a');
+                data.accountGroup.groupCode.should.equal('TESTING');
+                data.accountGroup.description.should.equal('Test account group update');
+                data.accountGroup.password.should.equal('test1234');
+                done();
+            })
+        })
+        it('should return valid JSON error data from the updateAccountGroup function if there was a problem finding the record to save', function(done) {
+          let updateBody = {"accountGroup": {"groupCode": "TESTING", "description": "Test account group update", "owner": "5770067d85e95a5378fb948e",
+                            "members": ["5770067d85e95a5378fb948e"], "password": "test1234"}}
+
+            let foundGroup = null;
+            stubGrpFindById.yields(null, foundGroup);
+
+            stubGrpSave.yields({errCode: 1234, errDesc: 'made up error'}, null);
+            tstCtrl.updateAccountGroup('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', updateBody, function(err, data) {
+                // console.log(err, data);
+                expect(err, 'no error was returned').to.not.be.null;
+                expect(data, 'some data was returned').to.not.be.null;
+                data.saveStatus.should.equal('failed update');
+                done();
+            })
+        })
+        it('should return valid JSON error data from the updateAccountGroup function if there was a problem saving', function(done) {
+          let updateBody = {"accountGroup": {"groupCode": "TESTING", "description": "Test account group update", "owner": "5770067d85e95a5378fb948e",
+                            "members": ["5770067d85e95a5378fb948e"], "password": "test1234"}}
+
+            let foundGroup = new accountGroup;
+            foundGroup._id = "57a24d3d962832317a82e15a";
+            foundGroup.groupCode = "TEST";
+            foundGroup.description = "Test account group";
+            foundGroup.owner = "5770067d85e95a5378fb948e";
+            foundGroup.members = ["579a57df4a4eff2f21d5a108", "5770067d85e95a5378fb948e"];
+            foundGroup.password = "testxyz";
+            foundGroup.createdDate = "2016-08-03";
+            stubGrpFindById.yields(null, foundGroup);
+
+            stubGrpSave.yields({errCode: 1234, errDesc: 'made up error'}, null);
+            tstCtrl.updateAccountGroup('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', updateBody, function(err, data) {
+                // console.log(err, data);
+                expect(err, 'no error was returned').to.not.be.null;
+                expect(data, 'some data was returned').to.not.be.null;
+                data.saveStatus.should.equal('failed update');
+                done();
+            })
+        })
+        it('should return valid JSON error data from the updateAccountGroup function if the user didnt have permission to save', function(done) {
+          let updateBody = {"accountGroup": {"groupCode": "TESTING", "description": "Test account group update", "owner": "5770067d85e95a5378fb948e",
+                            "members": ["5770067d85e95a5378fb948e"], "password": "test1234"}}
+
+            let foundGroup = new accountGroup;
+            foundGroup._id = "57a24d3d962832317a82e15a";
+            foundGroup.groupCode = "TEST";
+            foundGroup.description = "Test account group";
+            foundGroup.owner = "5770067d85e95a5378fb948e";
+            foundGroup.members = ["579a57df4a4eff2f21d5a108", "5770067d85e95a5378fb948e"];
+            foundGroup.password = "testxyz";
+            foundGroup.createdDate = "2016-08-03";
+            stubGrpFindById.yields(null, foundGroup);
+
+            stubGrpSave.yields(null, {
+              "_id": "57a24d3d962832317a82e15a",
+              "groupCode": "TESTING",
+              "description": "Test account group update",
+              "owner": "5770067d85e95a5378fb948e",
+              "members": [
+                "5770067d85e95a5378fb948e"
+              ],
+              "password": "test1234",
+              "createdDate": "2016-08-03T00:00:00.000Z"
+            });
+
+            tstCtrl.updateAccountGroup('xxxxxxxxxxxxxxxxx', '57a24d3d962832317a82e15a', updateBody, function(err, data) {
+                // console.log(err, data);
+                expect(err, 'no error was returned').to.not.be.null;
+                expect(data, 'some data was returned').to.be.null;
+                done();
+            })
+        })
+
+
+    //REMOVE-ACCOUNT-GROUP
+    it('should return a valid JSON response status (deleted) from the deleteAccountGroup function', function(done) {
+
+        let foundGroup = new accountGroup;
+        foundGroup._id = "579a57df4a4eff2f21d5a109";
+        foundGroup.groupCode = "TEST";
+        foundGroup.description = "Test account group";
+        foundGroup.owner = "5770067d85e95a5378fb948e";
+        foundGroup.members = ["579a57df4a4eff2f21d5a108", "5770067d85e95a5378fb948e"];
+        foundGroup.password = "testing";
+        foundGroup.createdDate = "2016-08-03";
+        stubGrpFindById.yields(null, foundGroup);
+
+        stubFind.yields(null, null);
+
+        tstCtrl.deleteAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', 'testing', function(err, data) {
+            // console.log(err, data);
+            expect(err, 'no error was returned').to.be.null;
+            expect(data, 'some data was returned').to.not.be.null;
+            data.saveStatus.should.equal('deleted');
+            done();
+        })
+    })
+    it('should return a valid JSON response status from the deleteAccountGroup function if the group cannot be deleted because it is not empty', function(done) {
+        tstCtrl.deleteAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a108', 'testing', function(err, data) {
+            // console.log(err, data);
+            expect(err, 'no error was returned').to.not.be.null;
+            expect(data, 'some data was returned').to.not.be.null;
+            data.saveStatus.should.equal('failed remove; group not empty');
+            done();
+        })
+    })
+    it('should return a valid JSON response status from the deleteAccountGroup function if the group cannot be deleted because the password is incorrect', function(done) {
+        tstCtrl.deleteAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a108', 'xxxxxxxxx', function(err, data) {
+            // console.log(err, data);
+            expect(err, 'no error was returned').to.not.be.null;
+            expect(data, 'some data was returned').to.not.be.null;
+            data.saveStatus.should.equal('failed remove; incorrect password');
+            done();
+        })
+    })
+    it('should return a valid JSON response status from the deleteAccountGroup function if the group cannot be deleted because the group doesnt exist', function(done) {
+        stubGrpFindById.yields(null, null);
+        tstCtrl.deleteAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a107', 'testing', function(err, data) {
+            // console.log(err, data);
+            expect(err, 'no error was returned').to.not.be.null;
+            expect(data, 'some data was returned').to.not.be.null;
+            data.saveStatus.should.equal('failed remove');
+            done();
+        })
+    })
+    it('should return a valid JSON response status from the deleteAccountGroup function if the group cannot be deleted because the remove operation failed', function(done) {
+        let foundGroup = new accountGroup;
+        foundGroup._id = "579a57df4a4eff2f21d5a109";
+        foundGroup.groupCode = "TEST";
+        foundGroup.description = "Test account group";
+        foundGroup.owner = "5770067d85e95a5378fb948e";
+        foundGroup.members = ["579a57df4a4eff2f21d5a108", "5770067d85e95a5378fb948e"];
+        foundGroup.password = "testing";
+        foundGroup.createdDate = "2016-08-03";
+        stubGrpFindById.yields(null, foundGroup);
+
+        stubFind.yields(null, null);
+
+        stubGrpRemove.yields({errCode: 1234, errDesc: 'made up error'}, null);
+
+        tstCtrl.deleteAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a107', 'testing', function(err, data) {
+            // console.log(err, data);
+            expect(err, 'no error was returned').to.not.be.null;
+            expect(data, 'some data was returned').to.not.be.null;
+            data.saveStatus.should.equal('failed remove');
+            done();
+        })
+    })
 
 
     //RESET-STUBS

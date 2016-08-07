@@ -166,25 +166,65 @@ const controller = function(moneyApiVars) {
       }
   }
 
+  const updateAccountGroup = function(uid, accgid, reqBody, done) {
+    if (uid && accgid && reqBody) {
+      accountGroup.findById(accgid, function(err, foundGroup) {
+          if (err || !foundGroup) {
+              done(constructErrReturnObj(err, 'accountgroup could not be found in the database', 404), {'saveStatus': 'failed update'});
+          } else {
+            //verify entitlement to update by checking if account is in an account group of which the user is a member
+            if (verifyEntitlement(uid, foundGroup)) {
+              let updatedGroup = constructAcctGroupObjectForUpdate(foundGroup, reqBody.accountGroup);
+              updatedGroup.save(function(err, savedGroup) {
+                  if (err || !savedGroup) {
+                    done(constructErrReturnObj(err, 'accountgroup record could not be updated in the database', 400), {'saveStatus': 'failed update'});
+                  } else {
+                    done(null, {'saveStatus': 'updated', 'accountGroup': constructAcctGroupObjectForRead(savedGroup)});
+                  }
+              })
+            } else {
+              done(constructErrReturnObj(err, 'permission denied', 403), null);
+            }
+        }
+      })
+    } else {
+      done(constructErrReturnObj('No user ID was supplied, or no accountgroup id was supplied, or no accountgroup details were supplied', 400), null);
+    }
+  }
+
+
+  const deleteAccountGroup = function(uid, accgid, accgpw, done) {
+    if (uid && accgid) {
+      accountGroup.findById(accgid, function(err, foundGroup) {
+          if (err || !foundGroup) {
+            done(constructErrReturnObj(err, 'accountgroup record could not be found in the database', 404), {'saveStatus': 'failed remove'});
+          } else {
+            //check password is ok
+            if (foundGroup.password !== accgpw) {
+              done(constructErrReturnObj(err, 'accountgroup password is incorrect', 403), {'saveStatus': 'failed remove; incorrect password'});
+            } else {
+              //check account group is empty
+              findAllAccountsInGroup(uid, accgid, function(err, foundAccounts) {
+                if (!err && foundAccounts.accountList.length > 0) {
+                  done(constructErrReturnObj(err, 'accountgroup is not empty, so cannot be deleted', 500), {'saveStatus': 'failed remove; group not empty'});
+                } else {
+                  foundGroup.remove(function(err) {
+                    if (err) {
+                      done(constructErrReturnObj(err, 'error removing accountgroup from database', 500), {'saveStatus': 'failed remove'});
+                    } else {
+                      done(null, {'saveStatus': 'deleted'});
+                    }
+                  })
+                }
+              });
+            }
+          }
+      });
+    }
+  }
 
 
 
-  // const deleteUser = function(uid, done) {
-  //   tonksDEVUser.findById(uid, function(err, foundUser) {
-  //       if (err || !foundUser) {
-  //           done(constructErrReturnObj(stdErrObj, err, 'error finding requested user in the database'), {'saveStatus': 'failed delete'});
-  //       } else {
-  //           foundUser.remove(function(err) {
-  //             if (err) {
-  //               done(constructErrReturnObj(stdErrObj, err, 'error removing user from the database'), {'saveStatus': 'failed delete'});
-  //             } else {
-  //               done(null, {'saveStatus': 'deleted'});
-  //             }
-  //           })
-  //       }
-  //   })
-  // }
-  //
   const constructAcctObjectForRead = function(acctFromDB) {
       let rtnAcct = {};
       if (acctFromDB) {
@@ -274,6 +314,16 @@ const controller = function(moneyApiVars) {
     return newGroup;
   }
 
+  const constructAcctGroupObjectForUpdate = function(accgObject, accgFromApp) {
+      if (accgFromApp) {
+          if (accgFromApp.groupCode)    accgObject.groupCode    = accgFromApp.groupCode;
+          if (accgFromApp.description)  accgObject.description  = accgFromApp.description;
+          if (accgFromApp.owner)        accgObject.owner        = accgFromApp.owner;
+          if (accgFromApp.members)      accgObject.members      = accgFromApp.members;
+          if (accgFromApp.password)     accgObject.password     = accgFromApp.password;
+      }
+      return accgObject;
+  }
 
   return {
     findAccount: findAccount,
@@ -283,7 +333,9 @@ const controller = function(moneyApiVars) {
     findAllAccountsInGroup: findAllAccountsInGroup,
     createAccount: createAccount,
     createAccountGroup: createAccountGroup,
-    updateAccount: updateAccount
+    updateAccount: updateAccount,
+    updateAccountGroup: updateAccountGroup,
+    deleteAccountGroup: deleteAccountGroup
   }
 }
 
