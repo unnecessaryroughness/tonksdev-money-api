@@ -70,13 +70,13 @@ const routes = function(moneyApiVars) {
           })
       })
       .delete(function(req, res, next) {
-          // userController.deleteUser(req.params.uid, function(err, data) {
-          //     if(!err && data.saveStatus === 'deleted') {
-          //         res.status(200).json(data);
-          //     } else {
-          //         res.status(500).json(err);
-          //     }
-          // })
+          acctController.deleteAccount(req.headers.userid, req.params.acctid, req.body.accountGroup.password, function(err, acctData) {
+              if (err || !acctData || !acctData.saveStatus || acctData.saveStatus !== 'deleted') {
+                  res.status(err.number || 400).json({"error": "error removing account", "accountid": req.params.acctid, "errDetails" : err});
+              } else {
+                  res.status(200).json(acctData);
+              }
+          })
       });
 
 

@@ -8,6 +8,7 @@ const mongoose = require('mongoose'),
 const controller = function(moneyApiVars) {
   'use strict';
 
+
   const verifyEntitlement = function(userid, accGroupRecord) {
     let rtnVal = false;
     if (userid && accGroupRecord) {
@@ -61,31 +62,6 @@ const controller = function(moneyApiVars) {
   }
 
 
-  const findAllAccountGroups = function(userid, done) {
-      accountGroup.find({"members": userid}, function(err, foundGroups) {
-        if (err || !foundGroups) {
-          done(constructErrReturnObj(err, 'user is not a member of any groups', 404), null);
-        } else {
-          done(null, {'accountGroupList': constructAccountGroupList(foundGroups)});
-        }
-      })
-  }
-
-
-  const findAccountGroup = function(userid, groupid, done) {
-      accountGroup.findById(groupid, function(err, foundGroup) {
-          if (err || !foundGroup) {
-              done(constructErrReturnObj(err, 'could not find the requested account group', 404), null);
-          } else {
-              if (verifyEntitlement(userid, foundGroup)) {
-                done(null, {'accountGroup': constructAcctGroupObjectForRead(foundGroup)});
-              } else {
-                done(constructErrReturnObj(err, 'permission denied', 403), null);
-              }
-          }
-      })
-  }
-
   const findAllAccountsInGroup = function(userid, groupid, done) {
       findAccountGroup(userid, groupid, function(err, foundGroup) {
           if (err || !foundGroup) {
@@ -101,6 +77,7 @@ const controller = function(moneyApiVars) {
           }
       })
   }
+
 
   const createAccount = function(reqBody, done) {
       if (reqBody.account.accountCode && reqBody.account.accountGroup) {
@@ -151,6 +128,67 @@ const controller = function(moneyApiVars) {
   }
 
 
+  const deleteAccount = function(uid, acctid, accgpw, done) {
+    if (uid && acctid && accgpw && done) {
+      account.findById(acctid, function(err, foundAccount) {
+          if (err || !foundAccount) {
+            done(constructErrReturnObj(err, 'account record could not be found in the database', 404), {'saveStatus': 'failed remove; invalid account'});
+          } else {
+            //find account group
+            findAccountGroup(uid, foundAccount.accountGroup, function(err, foundGroup) {
+              if (err || !foundGroup) {
+                done(constructErrReturnObj(err, 'could not find accountgroup for specified account', 403), {'saveStatus': 'failed remove; invalid accountgroup'});
+              } else {
+                //check password is ok
+                if (foundGroup.accountGroup.password !== accgpw) {
+                  done(constructErrReturnObj(err, 'accountgroup password is incorrect', 403), {'saveStatus': 'failed remove; incorrect password'});
+                } else {
+                  //remove account
+                  foundAccount.remove(function(err) {
+                    if (err) {
+                      done(constructErrReturnObj(err, 'error removing account from database', 500), {'saveStatus': 'failed remove'});
+                    } else {
+                      done(null, {'saveStatus': 'deleted'});
+                    }
+                  })
+                }
+              }
+            })
+          }
+      });
+    } else {
+      done(constructErrReturnObj(null, 'did not supply all required parameters', 500), {'saveStatus': 'failed remove; missing parameters'});
+    }
+  }
+
+
+
+
+  const findAllAccountGroups = function(userid, done) {
+      accountGroup.find({"members": userid}, function(err, foundGroups) {
+        if (err || !foundGroups) {
+          done(constructErrReturnObj(err, 'user is not a member of any groups', 404), null);
+        } else {
+          done(null, {'accountGroupList': constructAccountGroupList(foundGroups)});
+        }
+      })
+  }
+
+
+  const findAccountGroup = function(userid, groupid, done) {
+      accountGroup.findById(groupid, function(err, foundGroup) {
+          if (err || !foundGroup) {
+              done(constructErrReturnObj(err, 'could not find the requested account group', 404), null);
+          } else {
+              if (verifyEntitlement(userid, foundGroup)) {
+                done(null, {'accountGroup': constructAcctGroupObjectForRead(foundGroup)});
+              } else {
+                done(constructErrReturnObj(err, 'permission denied', 403), null);
+              }
+          }
+      })
+  }
+
   const createAccountGroup = function(reqBody, done) {
       if (reqBody.accountGroup.groupCode && reqBody.accountGroup.owner && reqBody.accountGroup.password) {
         let newGroup = constructAcctGroupObjectForSave(reqBody.accountGroup);
@@ -194,7 +232,7 @@ const controller = function(moneyApiVars) {
 
 
   const deleteAccountGroup = function(uid, accgid, accgpw, done) {
-    if (uid && accgid) {
+    if (uid && accgid && accgpw && done) {
       accountGroup.findById(accgid, function(err, foundGroup) {
           if (err || !foundGroup) {
             done(constructErrReturnObj(err, 'accountgroup record could not be found in the database', 404), {'saveStatus': 'failed remove'});
@@ -220,6 +258,8 @@ const controller = function(moneyApiVars) {
             }
           }
       });
+    } else {
+      done(constructErrReturnObj(null, 'did not supply all required parameters', 500), {'saveStatus': 'failed remove; missing parameters'});
     }
   }
 
@@ -335,7 +375,8 @@ const controller = function(moneyApiVars) {
     createAccountGroup: createAccountGroup,
     updateAccount: updateAccount,
     updateAccountGroup: updateAccountGroup,
-    deleteAccountGroup: deleteAccountGroup
+    deleteAccountGroup: deleteAccountGroup,
+    deleteAccount: deleteAccount
   }
 }
 
