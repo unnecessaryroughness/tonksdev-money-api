@@ -79,6 +79,7 @@ describe('"Account" FIND functional testing', function() {
 
       //FIND-ALL-ACCOUNTS
           it('should return valid JSON data from the findAllAccounts function', function(done) {
+              console.log("");
               tstCtrl.findAllAccounts('123456789', function(err, data) {
                   // console.log(err, data);
                   expect(err, 'error was returned').to.be.null;
@@ -95,7 +96,6 @@ describe('"Account" FIND functional testing', function() {
                   done();
               })
           })
-
           it('should return valid JSON error data from the findAllAccounts function if no user is found', function(done) {
               stubFind.yields({error: 101, errorMessage: "miscellaneous error"}, null);
               tstCtrl.findAllAccounts('123456789', function(err, data) {
@@ -106,9 +106,9 @@ describe('"Account" FIND functional testing', function() {
               })
           })
 
-
       //FIND-ACCOUNT-BY-ID
           it('should return valid JSON data from the findAccount function', function(done) {
+              console.log("");
               tstCtrl.findAccount('5770067d85e95a5378fb948e', '1234567890', function(err, data) {
                   // console.log(err, data);
                   expect(err, 'error was returned').to.be.null;
@@ -144,6 +144,7 @@ describe('"Account" FIND functional testing', function() {
 
     //FIND-ALL-ACCOUNT-GROUPS
         it('should return valid JSON data from the findAllAccountGroups function', function(done) {
+            console.log("");
             tstCtrl.findAllAccountGroups('123456789', function(err, data) {
                 // console.log(err, data);
                 expect(err, 'error was returned').to.be.null;
@@ -174,6 +175,7 @@ describe('"Account" FIND functional testing', function() {
 
         //FIND-ACCOUNT-GROUP-BY-ID
             it('should return valid JSON data from the findAccountGroup function', function(done) {
+                console.log("");
                 tstCtrl.findAccountGroup('5770067d85e95a5378fb948e', '1234567890', function(err, data) {
                     // console.log(err, data);
                     expect(err, 'error was returned').to.be.null;
@@ -210,6 +212,7 @@ describe('"Account" FIND functional testing', function() {
 
         //FIND-ALL-ACCOUNTS-IN-ACCOUNT-GROUP
             it('should return valid JSON data from the findAllAccountsInGroup function', function(done) {
+                console.log("");
                 tstCtrl.findAllAccountsInGroup('5770067d85e95a5378fb948e', '0987654321', function(err, data) {
                     // console.log(err, data);
                     expect(err, 'error was returned').to.be.null;
@@ -260,7 +263,7 @@ describe('"Account" FIND functional testing', function() {
 describe('"Account" CRUD functional testing', function() {
 
     //DEFINE-VARIABLES
-        let tstCtrl, stubFind, stubFindById, stubGrpFind, stubGrpFindById, stubSave, stubGrpSave, stubRemove, stubGrpRemove;
+        let tstCtrl, stubFind, stubFindById, stubGrpFind, stubGrpFindById, stubSave, stubGrpSave, stubRemove, stubGrpRemove, stubUpdate;
 
         beforeEach(function() {
             tstCtrl = new ctrl({});
@@ -268,14 +271,16 @@ describe('"Account" CRUD functional testing', function() {
 
     //SETUP STUBS
     before(function() {
-      stubFind        = sinon.stub(account,       'find');
-      stubFindById    = sinon.stub(account,       'findById');
-      stubGrpFind     = sinon.stub(accountGroup,  'find');
-      stubGrpFindById = sinon.stub(accountGroup,  'findById');
-      stubSave        = sinon.stub(account.prototype, 'save');
-      stubGrpSave     = sinon.stub(accountGroup.prototype, 'save');
-      stubRemove      = sinon.stub(account.prototype, 'remove');
-      stubGrpRemove   = sinon.stub(accountGroup.prototype, 'remove');
+      stubFind        = sinon.stub(account,                 'find');
+      stubFindById    = sinon.stub(account,                 'findById');
+      stubSave        = sinon.stub(account.prototype,       'save');
+      stubRemove      = sinon.stub(account.prototype,       'remove');
+      stubUpdate      = sinon.stub(account,                 'update');
+
+      stubGrpFind     = sinon.stub(accountGroup,            'find');
+      stubGrpFindById = sinon.stub(accountGroup,            'findById');
+      stubGrpSave     = sinon.stub(accountGroup.prototype,  'save');
+      stubGrpRemove   = sinon.stub(accountGroup.prototype,  'remove');
     });
 
     beforeEach(function() {
@@ -344,10 +349,13 @@ describe('"Account" CRUD functional testing', function() {
       stubGrpRemove.yields(null, {
           "removed": 1
       })
+
+      stubUpdate.yields(null, 1);
     });
 
     //CREATE-ACCOUNT
         it('should return valid JSON data from the createAccount function', function(done) {
+            console.log("");
             let createBody = {"account": {"accountCode": "RAINYDAY", "accountName": "Rainy Day Savings Account", "bankName": "Halifax",
                               "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 4567.89, "createdDate": "2016-08-02"} };
 
@@ -366,7 +374,6 @@ describe('"Account" CRUD functional testing', function() {
                 done();
             })
         })
-
         it('should return valid JSON error data from the createAccont function if there was a problem saving', function(done) {
           let createBody = {"account": {"accountCode": "RAINYDAY", "accountName": "Rainy Day Savings Account", "bankName": "Halifax",
                             "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 4567.89, "createdDate": "2016-08-02"} };
@@ -384,6 +391,7 @@ describe('"Account" CRUD functional testing', function() {
 
     //UPDATE-ACCOUNT
         it('should return valid JSON data from the updateAccount function', function(done) {
+            console.log("");
             let updateBody = {"account": {"accountCode": "RAINYDAYXXX", "accountName": "Rainy Day Savings AccountXXXX", "bankName": "HalifaxXXX",
                               "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 111.89} };
 
@@ -494,14 +502,83 @@ describe('"Account" CRUD functional testing', function() {
         })
 
 
+        //REMOVE-ACCOUNT
+        it('should return a valid JSON response status (deleted) from the deleteAccount function', function(done) {
+            console.log("");
 
+            let foundAccount = new account;
+            foundAccount._id = "579a57df4a4eff2f21d5a109";
+            foundAccount.accountCode = "XYCURACC";
+            foundAccount.accountName = "XY Bank Current Account";
+            foundAccount.bankName = "XY Bank";
+            foundAccount.accountGroup = "579a57df4a4eff2f21d5a108";
+            foundAccount.balance = 999.99;
+            foundAccount.createdDate = "2016-07-28";
+            stubFindById.yields(null, foundAccount);
 
+            tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', 'testing', function(err, data) {
+                // console.log(err, data);
+                expect(err, 'no error was returned').to.be.null;
+                expect(data, 'some data was returned').to.not.be.null;
+                data.saveStatus.should.equal('deleted');
+                done();
+            })
+        })
+        it('should return a valid JSON response status from the deleteAccount function if the account cannot be deleted because the account doesnt exist', function(done) {
+            stubFindById.yields(null, null);
+            tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a107', 'testing', function(err, data) {
+                // console.log(err, data);
+                expect(err, 'no error was returned').to.not.be.null;
+                expect(data, 'some data was returned').to.not.be.null;
+                data.saveStatus.should.equal('failed remove; invalid account');
+                done();
+            })
+        })
+        it('should return a valid JSON response status from the deleteAccount function if the account cannot be deleted because the accountgroup doesnt exist', function(done) {
+            stubGrpFindById.yields(null, null);
+            tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a108', 'testing', function(err, data) {
+                // console.log(err, data);
+                expect(err, 'no error was returned').to.not.be.null;
+                expect(data, 'some data was returned').to.not.be.null;
+                data.saveStatus.should.equal('failed remove; invalid accountgroup');
+                done();
+            })
+        })
+        it('should return a valid JSON response status from the deleteAccount function if the account cannot be deleted because the accountgroup password is incorrect', function(done) {
+            tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a108', 'xxxxxxxxx', function(err, data) {
+                // console.log(err, data);
+                expect(err, 'no error was returned').to.not.be.null;
+                expect(data, 'some data was returned').to.not.be.null;
+                data.saveStatus.should.equal('failed remove; incorrect password');
+                done();
+            })
+        })
+        it('should return a valid JSON response status from the deleteAccountGroup function if the group cannot be deleted because the remove operation failed', function(done) {
+            let foundAccount = new account;
+            foundAccount._id = "579a57df4a4eff2f21d5a109";
+            foundAccount.accountCode = "XYCURACC";
+            foundAccount.accountName = "XY Bank Current Account";
+            foundAccount.bankName = "XY Bank";
+            foundAccount.accountGroup = "579a57df4a4eff2f21d5a108";
+            foundAccount.balance = 999.99;
+            foundAccount.createdDate = "2016-07-28";
+            stubFindById.yields(null, foundAccount);
 
+            stubRemove.yields({errCode: 1234, errDesc: 'made up error'}, null);
 
+            tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a107', 'testing', function(err, data) {
+                // console.log(err, data);
+                expect(err, 'no error was returned').to.not.be.null;
+                expect(data, 'some data was returned').to.not.be.null;
+                data.saveStatus.should.equal('failed remove');
+                done();
+            })
+        })
 
 
     //CREATE-ACCOUNT-GROUP
         it('should return valid JSON data from the createAccountGroup function', function(done) {
+            console.log("");
             let createBody = {"accountGroup": {"groupCode": "TEST", "description": "Test account group", "owner": "5770067d85e95a5378fb948e",
                                 "members": ["5770067d85e95a5378fb948e"], "password": "test"}}
 
@@ -540,6 +617,7 @@ describe('"Account" CRUD functional testing', function() {
 
     //UPDATE-ACCOUNT-GROUP
         it('should return valid JSON data from the updateAccountGroup function', function(done) {
+            console.log("");
             let updateBody = {"accountGroup": {"groupCode": "TESTING", "description": "Test account group update", "owner": "5770067d85e95a5378fb948e",
                               "members": ["5770067d85e95a5378fb948e"], "password": "test1234"}}
 
@@ -658,6 +736,7 @@ describe('"Account" CRUD functional testing', function() {
 
     //REMOVE-ACCOUNT-GROUP
     it('should return a valid JSON response status (deleted) from the deleteAccountGroup function', function(done) {
+        console.log("");
 
         let foundGroup = new accountGroup;
         foundGroup._id = "579a57df4a4eff2f21d5a109";
@@ -732,82 +811,73 @@ describe('"Account" CRUD functional testing', function() {
     })
 
 
-    //REMOVE-ACCOUNT
-    it('should return a valid JSON response status (deleted) from the deleteAccount function', function(done) {
-
-        let foundAccount = new account;
-        foundAccount._id = "579a57df4a4eff2f21d5a109";
-        foundAccount.accountCode = "XYCURACC";
-        foundAccount.accountName = "XY Bank Current Account";
-        foundAccount.bankName = "XY Bank";
-        foundAccount.accountGroup = "579a57df4a4eff2f21d5a108";
-        foundAccount.balance = 999.99;
-        foundAccount.createdDate = "2016-07-28";
-        stubFindById.yields(null, foundAccount);
-
-        tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', 'testing', function(err, data) {
+    //CHANGE-ACCOUNT-GROUP
+    it('should return a valid JSON response status from the changeAccountGroup function when all succeeds and a single record is updated', function(done) {
+        console.log("");
+        tstCtrl.changeAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', '579a57df4a4eff2f21d5a108', function(err, data) {
             // console.log(err, data);
-            expect(err, 'no error was returned').to.be.null;
-            expect(data, 'some data was returned').to.not.be.null;
-            data.saveStatus.should.equal('deleted');
+            expect(err, 'error was returned').to.be.null;
+            expect(data, 'no data was returned').to.not.be.null;
+            data.saveStatus.should.equal('updated');
+            data.recordsUpdated.should.equal(1);
             done();
         })
     })
-    it('should return a valid JSON response status from the deleteAccount function if the account cannot be deleted because the account doesnt exist', function(done) {
-        stubFindById.yields(null, null);
-        tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a107', 'testing', function(err, data) {
-            // console.log(err, data);
-            expect(err, 'no error was returned').to.not.be.null;
-            expect(data, 'some data was returned').to.not.be.null;
-            data.saveStatus.should.equal('failed remove; invalid account');
-            done();
-        })
+    it('should return a valid JSON response status from the changeAccountGroup function when the target group is not found', function(done) {
+      stubGrpFindById.yields(null, null);
+      tstCtrl.changeAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', '579a57df4a4eff2f21d5a108', function(err, data) {
+          // console.log(err, data);
+          expect(err, 'no error was returned').to.not.be.null;
+          expect(data, 'no data was returned').to.not.be.null;
+          data.saveStatus.should.equal('failed update; invalid accountgroup');
+          data.recordsUpdated.should.equal(0);
+          done();
+      })
     })
-    it('should return a valid JSON response status from the deleteAccount function if the account cannot be deleted because the accountgroup doesnt exist', function(done) {
-        stubGrpFindById.yields(null, null);
-        tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a108', 'testing', function(err, data) {
-            // console.log(err, data);
-            expect(err, 'no error was returned').to.not.be.null;
-            expect(data, 'some data was returned').to.not.be.null;
-            data.saveStatus.should.equal('failed remove; invalid accountgroup');
-            done();
-        })
+    it('should return a valid JSON response status from the changeAccountGroup function when the target account is not found', function(done) {
+      stubFindById.yields(null, null);
+      tstCtrl.changeAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', '579a57df4a4eff2f21d5a108', function(err, data) {
+          // console.log(err, data);
+          expect(err, 'no error was returned').to.not.be.null;
+          expect(data, 'no data was returned').to.not.be.null;
+          data.saveStatus.should.equal('failed update; invalid account');
+          data.recordsUpdated.should.equal(0);
+          done();
+      })
     })
-    it('should return a valid JSON response status from the deleteAccount function if the account cannot be deleted because the accountgroup password is incorrect', function(done) {
-        tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a108', 'xxxxxxxxx', function(err, data) {
-            // console.log(err, data);
-            expect(err, 'no error was returned').to.not.be.null;
-            expect(data, 'some data was returned').to.not.be.null;
-            data.saveStatus.should.equal('failed remove; incorrect password');
-            done();
-        })
+    it('should return a valid JSON response status from the changeAccountGroup function when the update failed', function(done) {
+      stubUpdate.yields(null, null);
+      tstCtrl.changeAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', '579a57df4a4eff2f21d5a108', function(err, data) {
+          // console.log(err, data);
+          expect(err, 'no error was returned').to.not.be.null;
+          expect(data, 'no data was returned').to.not.be.null;
+          data.saveStatus.should.equal('failed update');
+          data.recordsUpdated.should.equal(-1);
+          done();
+      })
     })
-    it('should return a valid JSON response status from the deleteAccountGroup function if the group cannot be deleted because the remove operation failed', function(done) {
-        let foundAccount = new account;
-        foundAccount._id = "579a57df4a4eff2f21d5a109";
-        foundAccount.accountCode = "XYCURACC";
-        foundAccount.accountName = "XY Bank Current Account";
-        foundAccount.bankName = "XY Bank";
-        foundAccount.accountGroup = "579a57df4a4eff2f21d5a108";
-        foundAccount.balance = 999.99;
-        foundAccount.createdDate = "2016-07-28";
-        stubFindById.yields(null, foundAccount);
-
-        stubRemove.yields({errCode: 1234, errDesc: 'made up error'}, null);
-
-        tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a107', 'testing', function(err, data) {
-            // console.log(err, data);
-            expect(err, 'no error was returned').to.not.be.null;
-            expect(data, 'some data was returned').to.not.be.null;
-            data.saveStatus.should.equal('failed remove');
-            done();
-        })
+    it('should return a valid JSON response status from the changeAccountGroup function when the update affected 0 records', function(done) {
+      stubUpdate.yields(null, 0);
+      tstCtrl.changeAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', '579a57df4a4eff2f21d5a108', function(err, data) {
+          // console.log(err, data);
+          expect(err, 'no error was returned').to.be.null;
+          expect(data, 'no data was returned').to.not.be.null;
+          data.saveStatus.should.equal('updated; warning: 0 records affected');
+          data.recordsUpdated.should.equal(0);
+          done();
+      })
     })
-
-
-
-
-
+    it('should return a valid JSON response status from the changeAccountGroup function when the update affected > 1 record', function(done) {
+      stubUpdate.yields(null, 2);
+      tstCtrl.changeAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', '579a57df4a4eff2f21d5a108', function(err, data) {
+          // console.log(err, data);
+          expect(err, 'no error was returned').to.be.null;
+          expect(data, 'no data was returned').to.not.be.null;
+          data.saveStatus.should.equal('updated; warning: updated more than 1 account');
+          data.recordsUpdated.should.equal(2);
+          done();
+      })
+    })
 
 
 

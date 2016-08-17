@@ -80,6 +80,21 @@ const routes = function(moneyApiVars) {
       });
 
 
+
+      acctRouter.route('/:acctid/changegroup/:accgid')
+        .get(function(req, res, next) {
+            acctController.changeAccountGroup(req.headers.userid, req.params.acctid, req.params.accgid, function(err, groupData) {
+                if (err || !groupData) {
+                  res.status(err.number || 400).json({"error": "could not change accountgroup of requested account",
+                                                      "accountid": req.params.acctid, "groupid": req.params.accgid, "errDetails" : err});
+                } else {
+                  res.status(200).json(groupData);
+                }
+            })
+          })
+
+
+
     acctRouter.route('/group')
         .post(function(req, res, next) {
             acctController.createAccountGroup(req.body, function(err, newGroupData) {
@@ -152,6 +167,8 @@ const routes = function(moneyApiVars) {
               }
           })
         })
+
+
 
 
     function addHATEOS(acctRecord, hostAddress) {

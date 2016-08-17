@@ -264,6 +264,36 @@ const controller = function(moneyApiVars) {
   }
 
 
+  const changeAccountGroup = function(uid, acctid, accgid, done) {
+      findAccountGroup(uid, accgid, function(err, foundGroup) {
+          if (err || !foundGroup) {
+            done(constructErrReturnObj(err, 'could not find accountgroup to update', 404), {'saveStatus': 'failed update; invalid accountgroup', 'recordsUpdated': 0});
+          } else {
+            //accountgroup exists... check account exists
+            findAccount(uid, acctid, function(err, foundAccount) {
+              if (err || !foundAccount) {
+                done(constructErrReturnObj(err, 'could not find account to update', 404), {'saveStatus': 'failed update; invalid account', 'recordsUpdated': 0});
+              } else {
+                //update the account record
+                account.update({'_id': acctid}, {$set: {'accountGroup': accgid}}, null, function(err, numAffected) {
+                  if (err || numAffected === null || typeof numAffected === 'undefined' || numAffected < 0) {
+                    done(constructErrReturnObj(err, 'could not update accountGroup', 500), {'saveStatus': 'failed update', 'recordsUpdated': numAffected || -1});
+                  } else {
+                    if (numAffected === 0) {
+                      done(null, {'saveStatus': 'updated; warning: 0 records affected', 'recordsUpdated': numAffected});
+                    } else if (numAffected === 1) {
+                      done(null, {'saveStatus': 'updated', 'recordsUpdated': numAffected});
+                    } else {
+                      done(null, {'saveStatus': 'updated; warning: updated more than 1 account', 'recordsUpdated': numAffected});
+                    }
+                  }
+                })
+              }
+            })
+          }
+      })
+  }
+
 
   const constructAcctObjectForRead = function(acctFromDB) {
       let rtnAcct = {};
@@ -376,7 +406,8 @@ const controller = function(moneyApiVars) {
     updateAccount: updateAccount,
     updateAccountGroup: updateAccountGroup,
     deleteAccountGroup: deleteAccountGroup,
-    deleteAccount: deleteAccount
+    deleteAccount: deleteAccount,
+    changeAccountGroup: changeAccountGroup
   }
 }
 
