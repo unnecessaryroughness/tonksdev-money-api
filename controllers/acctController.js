@@ -3,13 +3,18 @@ const mongoose = require('mongoose'),
       account = require('../models/accountModel'),
       accountGroup = require('../models/accountGroupModel'),
       constructErrReturnObj = require('../common/moneyErrorObj'),
-      dateFuncs = require('../common/dateFunctions')();
+      dateFuncs = require('../common/dateFunctions')(),
+      crypto = require('crypto');
 
 const controller = function(moneyApiVars) {
   'use strict';
 
 
-  const verifyEntitlement = function(userid, accGroupRecord) {
+  const verifyEntitlement = function(userid, accGroupRecord, accGroupPW) {
+    if (accGroupPW && !verifyAccountGroupPassword(accGroupRecord, accGroupPW)) {
+      return false;
+    }
+
     let rtnVal = false;
     if (userid && accGroupRecord) {
       accGroupRecord.members.forEach(function(member, idx, list) {
@@ -140,7 +145,7 @@ const controller = function(moneyApiVars) {
                 done(constructErrReturnObj(err, 'could not find accountgroup for specified account', 403), {'saveStatus': 'failed remove; invalid accountgroup'});
               } else {
                 //check password is ok
-                if (foundGroup.accountGroup.password !== accgpw) {
+                if (!verifyAccountGroupPassword(foundGroup.accountGroup, accgpw)) {
                   done(constructErrReturnObj(err, 'accountgroup password is incorrect', 403), {'saveStatus': 'failed remove; incorrect password'});
                 } else {
                   //remove account
@@ -204,14 +209,14 @@ const controller = function(moneyApiVars) {
       }
   }
 
-  const updateAccountGroup = function(uid, accgid, reqBody, done) {
+  const updateAccountGroup = function(uid, accgid, accgpw, reqBody, done) {
     if (uid && accgid && reqBody) {
       accountGroup.findById(accgid, function(err, foundGroup) {
           if (err || !foundGroup) {
               done(constructErrReturnObj(err, 'accountgroup could not be found in the database', 404), {'saveStatus': 'failed update'});
           } else {
             //verify entitlement to update by checking if account is in an account group of which the user is a member
-            if (verifyEntitlement(uid, foundGroup)) {
+            if (verifyEntitlement(uid, foundGroup, accgpw)) {
               let updatedGroup = constructAcctGroupObjectForUpdate(foundGroup, reqBody.accountGroup);
               updatedGroup.save(function(err, savedGroup) {
                   if (err || !savedGroup) {
@@ -238,7 +243,7 @@ const controller = function(moneyApiVars) {
             done(constructErrReturnObj(err, 'accountgroup record could not be found in the database', 404), {'saveStatus': 'failed remove'});
           } else {
             //check password is ok
-            if (foundGroup.password !== accgpw) {
+            if (!verifyAccountGroupPassword(foundGroup, accgpw)) {
               done(constructErrReturnObj(err, 'accountgroup password is incorrect', 403), {'saveStatus': 'failed remove; incorrect password'});
             } else {
               //check account group is empty
@@ -293,6 +298,39 @@ const controller = function(moneyApiVars) {
           }
       })
   }
+
+
+  const changeAccountGroupPassword = function(uid, accgid, oldpw, newpw, done) {
+      updateAccountGroup(uid, accgid, oldpw, {accountGroup: {password: newpw}}, function(err, data) {
+          if (err || data.saveStatus !== 'updated') {
+            done(constructErrReturnObj(err, 'could not change accountgroup password', 500), {'saveStatus': 'failed to update password'});
+          } else {
+            done(null, {'saveStatus': 'updated password'});
+          }
+      })
+  };
+
+
+  const genRandomString = function(length) {
+    return crypto.randomBytes(Math.ceil(length/2)).toString('hex').slice(0, length);
+  };
+
+  const sha512 = function(password, salt) {
+    var hash = crypto.createHmac('sha512', salt);
+    hash.update(password);
+    var value = hash.digest('hex');
+    return {
+      salt: salt,
+      passwordHash: value
+    };
+  };
+
+
+  const verifyAccountGroupPassword = function(accgDbObject, plainPW) {
+      let comp1 = accgDbObject.password;
+      let comp2 = sha512(plainPW, accgDbObject.passwordSalt).passwordHash;
+      return (comp1 === comp2);
+  };
 
 
   const constructAcctObjectForRead = function(acctFromDB) {
@@ -354,6 +392,7 @@ const controller = function(moneyApiVars) {
           rtnAcctGroup.description  = acctGroupFromDB.description;
           rtnAcctGroup.owner        = acctGroupFromDB.owner;
           rtnAcctGroup.members      = acctGroupFromDB.members;
+          rtnAcctGroup.passwordSalt = acctGroupFromDB.passwordSalt;
           rtnAcctGroup.password     = acctGroupFromDB.password;
           rtnAcctGroup.createdDate  = acctGroupFromDB.createdDate;
           rtnAcctGroup.links = {};
@@ -378,7 +417,8 @@ const controller = function(moneyApiVars) {
         newGroup.description  = groupFromApp.description || 'Unnamed account group';
         newGroup.owner        = groupFromApp.owner;
         newGroup.members      = groupFromApp.members || [groupFromApp.owner];
-        newGroup.password     = groupFromApp.password;
+        newGroup.passwordSalt = genRandomString(16);
+        newGroup.password     = sha512(groupFromApp.password, newGroup.passwordSalt).passwordHash;
         newGroup.createdDate  = groupFromApp.createdDate || dateFuncs.getTodaysDateYMD();
     }
     return newGroup;
@@ -390,7 +430,10 @@ const controller = function(moneyApiVars) {
           if (accgFromApp.description)  accgObject.description  = accgFromApp.description;
           if (accgFromApp.owner)        accgObject.owner        = accgFromApp.owner;
           if (accgFromApp.members)      accgObject.members      = accgFromApp.members;
-          if (accgFromApp.password)     accgObject.password     = accgFromApp.password;
+          if (accgFromApp.password) {
+            accgObject.passwordSalt = genRandomString(16);
+            accgObject.password     = sha512(accgFromApp.password, accgObject.passwordSalt).passwordHash;
+          }
       }
       return accgObject;
   }
@@ -407,7 +450,8 @@ const controller = function(moneyApiVars) {
     updateAccountGroup: updateAccountGroup,
     deleteAccountGroup: deleteAccountGroup,
     deleteAccount: deleteAccount,
-    changeAccountGroup: changeAccountGroup
+    changeAccountGroup: changeAccountGroup,
+    changeAccountGroupPassword: changeAccountGroupPassword
   }
 }
 

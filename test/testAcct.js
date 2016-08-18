@@ -51,7 +51,8 @@ describe('"Account" FIND functional testing', function() {
                                     "accounts": [],
                                     "createdDate": "2016-07-28",
                                     "groupCode": 'TEST',
-                                    "password": 'testing',
+                                    "passwordSalt": 'd39d58b9489d07ae',
+                                    "password": 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
                                     "owner": "5770067d85e95a5378fb948e",
                                     "description": 'Testing account group',
                                     "_id": "579a57df4a4eff2f21d5a108"
@@ -70,7 +71,8 @@ describe('"Account" FIND functional testing', function() {
                                     "accounts": [],
                                     "createdDate": "2016-07-28",
                                     "groupCode": 'TEST',
-                                    "password": 'testing',
+                                    "passwordSalt": 'd39d58b9489d07ae',
+                                    "password": 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
                                     "owner": "5770067d85e95a5378fb948e",
                                     "description": 'Testing account group',
                                     "_id": "579a57df4a4eff2f21d5a108"
@@ -297,7 +299,8 @@ describe('"Account" CRUD functional testing', function() {
                               "accounts": [],
                               "createdDate": "2016-07-28",
                               "groupCode": 'TEST',
-                              "password": 'testing',
+                              "passwordSalt": 'd39d58b9489d07ae',
+                              "password": 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
                               "owner": "5770067d85e95a5378fb948e",
                               "description": 'Testing account group',
                               "_id": "579a57df4a4eff2f21d5a108"
@@ -316,7 +319,8 @@ describe('"Account" CRUD functional testing', function() {
                               "accounts": [],
                               "createdDate": "2016-07-28",
                               "groupCode": 'TEST',
-                              "password": 'testing',
+                              "passwordSalt": 'd39d58b9489d07ae',
+                              "password": 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
                               "owner": "5770067d85e95a5378fb948e",
                               "description": 'Testing account group',
                               "_id": "579a57df4a4eff2f21d5a108"
@@ -339,7 +343,8 @@ describe('"Account" CRUD functional testing', function() {
         "members": [
           "5770067d85e95a5378fb948e"
         ],
-        "password": "test",
+        "passwordSalt": 'd39d58b9489d07ae',
+        "password": 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
         "createdDate": "2016-07-03T00:00:00.000Z"
       });
 
@@ -354,7 +359,7 @@ describe('"Account" CRUD functional testing', function() {
     });
 
     //CREATE-ACCOUNT
-        it('should return valid JSON data from the createAccount function', function(done) {
+        it('should return valid JSON response from the createAccount function', function(done) {
             console.log("");
             let createBody = {"account": {"accountCode": "RAINYDAY", "accountName": "Rainy Day Savings Account", "bankName": "Halifax",
                               "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 4567.89, "createdDate": "2016-08-02"} };
@@ -374,7 +379,7 @@ describe('"Account" CRUD functional testing', function() {
                 done();
             })
         })
-        it('should return valid JSON error data from the createAccont function if there was a problem saving', function(done) {
+        it('should return valid JSON response from the createAccount function if there was a problem saving', function(done) {
           let createBody = {"account": {"accountCode": "RAINYDAY", "accountName": "Rainy Day Savings Account", "bankName": "Halifax",
                             "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 4567.89, "createdDate": "2016-08-02"} };
 
@@ -390,7 +395,7 @@ describe('"Account" CRUD functional testing', function() {
 
 
     //UPDATE-ACCOUNT
-        it('should return valid JSON data from the updateAccount function', function(done) {
+        it('should return valid JSON response from the updateAccount function', function(done) {
             console.log("");
             let updateBody = {"account": {"accountCode": "RAINYDAYXXX", "accountName": "Rainy Day Savings AccountXXXX", "bankName": "HalifaxXXX",
                               "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 111.89} };
@@ -432,7 +437,7 @@ describe('"Account" CRUD functional testing', function() {
                 done();
             })
         })
-        it('should return valid JSON error data from the updateAccount function if there was a problem finding the record to save', function(done) {
+        it('should return valid JSON response from the updateAccount function if there was a problem finding the record to save', function(done) {
           let updateBody = {"account": {"accountCode": "RAINYDAYXXX", "accountName": "Rainy Day Savings AccountXXXX", "bankName": "HalifaxXXX",
                             "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 111.89} };
 
@@ -448,7 +453,7 @@ describe('"Account" CRUD functional testing', function() {
                 done();
             })
         })
-        it('should return valid JSON error data from the updateAccount function if there was a problem saving', function(done) {
+        it('should return valid JSON response from the updateAccount function if there was a problem saving', function(done) {
           let updateBody = {"account": {"accountCode": "RAINYDAYXXX", "accountName": "Rainy Day Savings AccountXXXX", "bankName": "HalifaxXXX",
                             "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 111.89} };
 
@@ -470,7 +475,7 @@ describe('"Account" CRUD functional testing', function() {
                 done();
             })
         })
-        it('should return valid JSON error data from the updateAccount function if the user didnt have permission to save', function(done) {
+        it('should return valid JSON response from the updateAccount function if the user didnt have permission to save', function(done) {
           let updateBody = {"account": {"accountCode": "RAINYDAYXXX", "accountName": "Rainy Day Savings AccountXXXX", "bankName": "HalifaxXXX",
                             "accountGroup": "579a57df4a4eff2f21d5a108", "balance": 111.89} };
 
@@ -503,7 +508,7 @@ describe('"Account" CRUD functional testing', function() {
 
 
         //REMOVE-ACCOUNT
-        it('should return a valid JSON response status (deleted) from the deleteAccount function', function(done) {
+        it('should return valid JSON response from the deleteAccount function', function(done) {
             console.log("");
 
             let foundAccount = new account;
@@ -516,7 +521,7 @@ describe('"Account" CRUD functional testing', function() {
             foundAccount.createdDate = "2016-07-28";
             stubFindById.yields(null, foundAccount);
 
-            tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', 'testing', function(err, data) {
+            tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', 'test', function(err, data) {
                 // console.log(err, data);
                 expect(err, 'no error was returned').to.be.null;
                 expect(data, 'some data was returned').to.not.be.null;
@@ -524,9 +529,9 @@ describe('"Account" CRUD functional testing', function() {
                 done();
             })
         })
-        it('should return a valid JSON response status from the deleteAccount function if the account cannot be deleted because the account doesnt exist', function(done) {
+        it('should return valid JSON response from the deleteAccount function if the account cannot be deleted because the account doesnt exist', function(done) {
             stubFindById.yields(null, null);
-            tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a107', 'testing', function(err, data) {
+            tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a107', 'test', function(err, data) {
                 // console.log(err, data);
                 expect(err, 'no error was returned').to.not.be.null;
                 expect(data, 'some data was returned').to.not.be.null;
@@ -534,9 +539,9 @@ describe('"Account" CRUD functional testing', function() {
                 done();
             })
         })
-        it('should return a valid JSON response status from the deleteAccount function if the account cannot be deleted because the accountgroup doesnt exist', function(done) {
+        it('should return valid JSON response from the deleteAccount function if the account cannot be deleted because the accountgroup doesnt exist', function(done) {
             stubGrpFindById.yields(null, null);
-            tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a108', 'testing', function(err, data) {
+            tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a108', 'test', function(err, data) {
                 // console.log(err, data);
                 expect(err, 'no error was returned').to.not.be.null;
                 expect(data, 'some data was returned').to.not.be.null;
@@ -544,7 +549,7 @@ describe('"Account" CRUD functional testing', function() {
                 done();
             })
         })
-        it('should return a valid JSON response status from the deleteAccount function if the account cannot be deleted because the accountgroup password is incorrect', function(done) {
+        it('should return valid JSON response from the deleteAccount function if the account cannot be deleted because the accountgroup password is incorrect', function(done) {
             tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a108', 'xxxxxxxxx', function(err, data) {
                 // console.log(err, data);
                 expect(err, 'no error was returned').to.not.be.null;
@@ -553,7 +558,7 @@ describe('"Account" CRUD functional testing', function() {
                 done();
             })
         })
-        it('should return a valid JSON response status from the deleteAccountGroup function if the group cannot be deleted because the remove operation failed', function(done) {
+        it('should return valid JSON response from the deleteAccount function if the group cannot be deleted because the remove operation failed', function(done) {
             let foundAccount = new account;
             foundAccount._id = "579a57df4a4eff2f21d5a109";
             foundAccount.accountCode = "XYCURACC";
@@ -566,7 +571,7 @@ describe('"Account" CRUD functional testing', function() {
 
             stubRemove.yields({errCode: 1234, errDesc: 'made up error'}, null);
 
-            tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a107', 'testing', function(err, data) {
+            tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a107', 'test', function(err, data) {
                 // console.log(err, data);
                 expect(err, 'no error was returned').to.not.be.null;
                 expect(data, 'some data was returned').to.not.be.null;
@@ -577,7 +582,7 @@ describe('"Account" CRUD functional testing', function() {
 
 
     //CREATE-ACCOUNT-GROUP
-        it('should return valid JSON data from the createAccountGroup function', function(done) {
+        it('should return valid JSON response from the createAccountGroup function', function(done) {
             console.log("");
             let createBody = {"accountGroup": {"groupCode": "TEST", "description": "Test account group", "owner": "5770067d85e95a5378fb948e",
                                 "members": ["5770067d85e95a5378fb948e"], "password": "test"}}
@@ -600,7 +605,7 @@ describe('"Account" CRUD functional testing', function() {
             })
         })
 
-        it('should return valid JSON error data from the createAccountGroup function if there was a problem saving', function(done) {
+        it('should return valid JSON response from the createAccountGroup function if there was a problem saving', function(done) {
           let createBody = {"accountGroup": {"groupCode": "TEST", "description": "Test account group", "owner": "5770067d85e95a5378fb948e",
                               "members": ["5770067d85e95a5378fb948e"], "password": "test"}}
 
@@ -616,7 +621,7 @@ describe('"Account" CRUD functional testing', function() {
 
 
     //UPDATE-ACCOUNT-GROUP
-        it('should return valid JSON data from the updateAccountGroup function', function(done) {
+        it('should return valid JSON response from the updateAccountGroup function', function(done) {
             console.log("");
             let updateBody = {"accountGroup": {"groupCode": "TESTING", "description": "Test account group update", "owner": "5770067d85e95a5378fb948e",
                               "members": ["5770067d85e95a5378fb948e"], "password": "test1234"}}
@@ -627,7 +632,8 @@ describe('"Account" CRUD functional testing', function() {
             foundGroup.description = "Test account group";
             foundGroup.owner = "5770067d85e95a5378fb948e";
             foundGroup.members = ["579a57df4a4eff2f21d5a108", "5770067d85e95a5378fb948e"];
-            foundGroup.password = "testxyz";
+            foundGroup.passwordSalt = 'd39d58b9489d07ae',
+            foundGroup.password = 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
             foundGroup.createdDate = "2016-08-03";
             stubGrpFindById.yields(null, foundGroup);
 
@@ -639,11 +645,12 @@ describe('"Account" CRUD functional testing', function() {
               "members": [
                 "5770067d85e95a5378fb948e"
               ],
-              "password": "test1234",
+              "passwordSalt": 'd39d58b9489d07ae',
+              "password": 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
               "createdDate": "2016-08-03T00:00:00.000Z"
             });
 
-            tstCtrl.updateAccountGroup('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', updateBody, function(err, data) {
+            tstCtrl.updateAccountGroup('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', null, updateBody, function(err, data) {
                 // console.log(err, data);
                 expect(err, 'error was returned').to.be.null;
                 expect(data, 'no data was returned').to.not.be.null;
@@ -656,11 +663,11 @@ describe('"Account" CRUD functional testing', function() {
                 data.accountGroup.id.should.equal('57a24d3d962832317a82e15a');
                 data.accountGroup.groupCode.should.equal('TESTING');
                 data.accountGroup.description.should.equal('Test account group update');
-                data.accountGroup.password.should.equal('test1234');
+                data.accountGroup.password.should.equal('ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41');
                 done();
             })
         })
-        it('should return valid JSON error data from the updateAccountGroup function if there was a problem finding the record to save', function(done) {
+        it('should return valid JSON response from the updateAccountGroup function if there was a problem finding the record to save', function(done) {
           let updateBody = {"accountGroup": {"groupCode": "TESTING", "description": "Test account group update", "owner": "5770067d85e95a5378fb948e",
                             "members": ["5770067d85e95a5378fb948e"], "password": "test1234"}}
 
@@ -668,7 +675,7 @@ describe('"Account" CRUD functional testing', function() {
             stubGrpFindById.yields(null, foundGroup);
 
             stubGrpSave.yields({errCode: 1234, errDesc: 'made up error'}, null);
-            tstCtrl.updateAccountGroup('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', updateBody, function(err, data) {
+            tstCtrl.updateAccountGroup('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', null, updateBody, function(err, data) {
                 // console.log(err, data);
                 expect(err, 'no error was returned').to.not.be.null;
                 expect(data, 'some data was returned').to.not.be.null;
@@ -676,7 +683,7 @@ describe('"Account" CRUD functional testing', function() {
                 done();
             })
         })
-        it('should return valid JSON error data from the updateAccountGroup function if there was a problem saving', function(done) {
+        it('should return valid JSON response from the updateAccountGroup function if there was a problem saving', function(done) {
           let updateBody = {"accountGroup": {"groupCode": "TESTING", "description": "Test account group update", "owner": "5770067d85e95a5378fb948e",
                             "members": ["5770067d85e95a5378fb948e"], "password": "test1234"}}
 
@@ -691,7 +698,7 @@ describe('"Account" CRUD functional testing', function() {
             stubGrpFindById.yields(null, foundGroup);
 
             stubGrpSave.yields({errCode: 1234, errDesc: 'made up error'}, null);
-            tstCtrl.updateAccountGroup('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', updateBody, function(err, data) {
+            tstCtrl.updateAccountGroup('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', null, updateBody, function(err, data) {
                 // console.log(err, data);
                 expect(err, 'no error was returned').to.not.be.null;
                 expect(data, 'some data was returned').to.not.be.null;
@@ -699,7 +706,7 @@ describe('"Account" CRUD functional testing', function() {
                 done();
             })
         })
-        it('should return valid JSON error data from the updateAccountGroup function if the user didnt have permission to save', function(done) {
+        it('should return valid JSON response from the updateAccountGroup function if the user didnt have permission to save', function(done) {
           let updateBody = {"accountGroup": {"groupCode": "TESTING", "description": "Test account group update", "owner": "5770067d85e95a5378fb948e",
                             "members": ["5770067d85e95a5378fb948e"], "password": "test1234"}}
 
@@ -725,7 +732,42 @@ describe('"Account" CRUD functional testing', function() {
               "createdDate": "2016-08-03T00:00:00.000Z"
             });
 
-            tstCtrl.updateAccountGroup('xxxxxxxxxxxxxxxxx', '57a24d3d962832317a82e15a', updateBody, function(err, data) {
+            tstCtrl.updateAccountGroup('xxxxxxxxxxxxxxxxx', '57a24d3d962832317a82e15a', null, updateBody, function(err, data) {
+                // console.log(err, data);
+                expect(err, 'no error was returned').to.not.be.null;
+                expect(data, 'some data was returned').to.be.null;
+                done();
+            })
+        })
+        it('should return valid JSON response from the updateAccountGroup function if the user didnt supply the right group password', function(done) {
+          let updateBody = {"accountGroup": {"groupCode": "TESTING", "description": "Test account group update", "owner": "5770067d85e95a5378fb948e",
+                            "members": ["5770067d85e95a5378fb948e"], "password": "test1234"}}
+
+            let foundGroup = new accountGroup;
+            foundGroup._id = "57a24d3d962832317a82e15a";
+            foundGroup.groupCode = "TEST";
+            foundGroup.description = "Test account group";
+            foundGroup.owner = "5770067d85e95a5378fb948e";
+            foundGroup.members = ["579a57df4a4eff2f21d5a108", "5770067d85e95a5378fb948e"];
+            foundGroup.passwordSalt = 'd39d58b9489d07ae',
+            foundGroup.password = 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
+            foundGroup.createdDate = "2016-08-03";
+            stubGrpFindById.yields(null, foundGroup);
+
+            stubGrpSave.yields(null, {
+              "_id": "57a24d3d962832317a82e15a",
+              "groupCode": "TESTING",
+              "description": "Test account group update",
+              "owner": "5770067d85e95a5378fb948e",
+              "members": [
+                "5770067d85e95a5378fb948e"
+              ],
+              "passwordSalt": 'd39d58b9489d07ae',
+              "password": 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
+              "createdDate": "2016-08-03T00:00:00.000Z"
+            });
+
+            tstCtrl.updateAccountGroup('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', "xxxxxxxxx", updateBody, function(err, data) {
                 // console.log(err, data);
                 expect(err, 'no error was returned').to.not.be.null;
                 expect(data, 'some data was returned').to.be.null;
@@ -735,7 +777,7 @@ describe('"Account" CRUD functional testing', function() {
 
 
     //REMOVE-ACCOUNT-GROUP
-    it('should return a valid JSON response status (deleted) from the deleteAccountGroup function', function(done) {
+    it('should return valid JSON response from the deleteAccountGroup function', function(done) {
         console.log("");
 
         let foundGroup = new accountGroup;
@@ -744,13 +786,14 @@ describe('"Account" CRUD functional testing', function() {
         foundGroup.description = "Test account group";
         foundGroup.owner = "5770067d85e95a5378fb948e";
         foundGroup.members = ["579a57df4a4eff2f21d5a108", "5770067d85e95a5378fb948e"];
-        foundGroup.password = "testing";
+        foundGroup.passwordSalt = 'd39d58b9489d07ae',
+        foundGroup.password = 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
         foundGroup.createdDate = "2016-08-03";
         stubGrpFindById.yields(null, foundGroup);
 
         stubFind.yields(null, null);
 
-        tstCtrl.deleteAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', 'testing', function(err, data) {
+        tstCtrl.deleteAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', 'test', function(err, data) {
             // console.log(err, data);
             expect(err, 'no error was returned').to.be.null;
             expect(data, 'some data was returned').to.not.be.null;
@@ -758,8 +801,8 @@ describe('"Account" CRUD functional testing', function() {
             done();
         })
     })
-    it('should return a valid JSON response status from the deleteAccountGroup function if the group cannot be deleted because it is not empty', function(done) {
-        tstCtrl.deleteAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a108', 'testing', function(err, data) {
+    it('should return valid JSON response from the deleteAccountGroup function if the group cannot be deleted because it is not empty', function(done) {
+        tstCtrl.deleteAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a108', 'test', function(err, data) {
             // console.log(err, data);
             expect(err, 'no error was returned').to.not.be.null;
             expect(data, 'some data was returned').to.not.be.null;
@@ -767,7 +810,7 @@ describe('"Account" CRUD functional testing', function() {
             done();
         })
     })
-    it('should return a valid JSON response status from the deleteAccountGroup function if the group cannot be deleted because the password is incorrect', function(done) {
+    it('should return valid JSON response from the deleteAccountGroup function if the group cannot be deleted because the password is incorrect', function(done) {
         tstCtrl.deleteAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a108', 'xxxxxxxxx', function(err, data) {
             // console.log(err, data);
             expect(err, 'no error was returned').to.not.be.null;
@@ -776,7 +819,7 @@ describe('"Account" CRUD functional testing', function() {
             done();
         })
     })
-    it('should return a valid JSON response status from the deleteAccountGroup function if the group cannot be deleted because the group doesnt exist', function(done) {
+    it('should return valid JSON response from the deleteAccountGroup function if the group cannot be deleted because the group doesnt exist', function(done) {
         stubGrpFindById.yields(null, null);
         tstCtrl.deleteAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a107', 'testing', function(err, data) {
             // console.log(err, data);
@@ -786,14 +829,15 @@ describe('"Account" CRUD functional testing', function() {
             done();
         })
     })
-    it('should return a valid JSON response status from the deleteAccountGroup function if the group cannot be deleted because the remove operation failed', function(done) {
+    it('should return valid JSON response from the deleteAccountGroup function if the group cannot be deleted because the remove operation failed', function(done) {
         let foundGroup = new accountGroup;
         foundGroup._id = "579a57df4a4eff2f21d5a109";
         foundGroup.groupCode = "TEST";
         foundGroup.description = "Test account group";
         foundGroup.owner = "5770067d85e95a5378fb948e";
         foundGroup.members = ["579a57df4a4eff2f21d5a108", "5770067d85e95a5378fb948e"];
-        foundGroup.password = "testing";
+        foundGroup.passwordSalt = 'd39d58b9489d07ae',
+        foundGroup.password = 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
         foundGroup.createdDate = "2016-08-03";
         stubGrpFindById.yields(null, foundGroup);
 
@@ -801,7 +845,7 @@ describe('"Account" CRUD functional testing', function() {
 
         stubGrpRemove.yields({errCode: 1234, errDesc: 'made up error'}, null);
 
-        tstCtrl.deleteAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a107', 'testing', function(err, data) {
+        tstCtrl.deleteAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a107', 'test', function(err, data) {
             // console.log(err, data);
             expect(err, 'no error was returned').to.not.be.null;
             expect(data, 'some data was returned').to.not.be.null;
@@ -812,7 +856,7 @@ describe('"Account" CRUD functional testing', function() {
 
 
     //CHANGE-ACCOUNT-GROUP
-    it('should return a valid JSON response status from the changeAccountGroup function when all succeeds and a single record is updated', function(done) {
+    it('should return valid JSON response from the changeAccountGroup function when all succeeds and a single record is updated', function(done) {
         console.log("");
         tstCtrl.changeAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', '579a57df4a4eff2f21d5a108', function(err, data) {
             // console.log(err, data);
@@ -823,7 +867,7 @@ describe('"Account" CRUD functional testing', function() {
             done();
         })
     })
-    it('should return a valid JSON response status from the changeAccountGroup function when the target group is not found', function(done) {
+    it('should return valid JSON response from the changeAccountGroup function when the target group is not found', function(done) {
       stubGrpFindById.yields(null, null);
       tstCtrl.changeAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', '579a57df4a4eff2f21d5a108', function(err, data) {
           // console.log(err, data);
@@ -834,7 +878,7 @@ describe('"Account" CRUD functional testing', function() {
           done();
       })
     })
-    it('should return a valid JSON response status from the changeAccountGroup function when the target account is not found', function(done) {
+    it('should return valid JSON response from the changeAccountGroup function when the target account is not found', function(done) {
       stubFindById.yields(null, null);
       tstCtrl.changeAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', '579a57df4a4eff2f21d5a108', function(err, data) {
           // console.log(err, data);
@@ -845,7 +889,7 @@ describe('"Account" CRUD functional testing', function() {
           done();
       })
     })
-    it('should return a valid JSON response status from the changeAccountGroup function when the update failed', function(done) {
+    it('should return valid JSON response from the changeAccountGroup function when the update failed', function(done) {
       stubUpdate.yields(null, null);
       tstCtrl.changeAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', '579a57df4a4eff2f21d5a108', function(err, data) {
           // console.log(err, data);
@@ -856,7 +900,7 @@ describe('"Account" CRUD functional testing', function() {
           done();
       })
     })
-    it('should return a valid JSON response status from the changeAccountGroup function when the update affected 0 records', function(done) {
+    it('should return valid JSON response from the changeAccountGroup function when the update affected 0 records', function(done) {
       stubUpdate.yields(null, 0);
       tstCtrl.changeAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', '579a57df4a4eff2f21d5a108', function(err, data) {
           // console.log(err, data);
@@ -867,7 +911,7 @@ describe('"Account" CRUD functional testing', function() {
           done();
       })
     })
-    it('should return a valid JSON response status from the changeAccountGroup function when the update affected > 1 record', function(done) {
+    it('should return valid JSON response from the changeAccountGroup function when the update affected > 1 record', function(done) {
       stubUpdate.yields(null, 2);
       tstCtrl.changeAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', '579a57df4a4eff2f21d5a108', function(err, data) {
           // console.log(err, data);
@@ -880,6 +924,93 @@ describe('"Account" CRUD functional testing', function() {
     })
 
 
+    //CHANGE-ACCOUNT-GROUP-PASSWORD
+    it('should return valid JSON response from the changeAccountGroupPassword function when all succeeds and the password is updated', function(done) {
+      let foundGroup = new accountGroup;
+      foundGroup._id = "57a24d3d962832317a82e15a";
+      foundGroup.groupCode = "TEST";
+      foundGroup.description = "Test account group";
+      foundGroup.owner = "5770067d85e95a5378fb948e";
+      foundGroup.members = ["579a57df4a4eff2f21d5a108", "5770067d85e95a5378fb948e"];
+      foundGroup.passwordSalt = 'd39d58b9489d07ae',
+      foundGroup.password = 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
+      foundGroup.createdDate = "2016-08-03";
+      stubGrpFindById.yields(null, foundGroup);
+
+      stubGrpSave.yields(null, {
+        "_id": "57a24d3d962832317a82e15a",
+        "groupCode": "TESTING",
+        "description": "Test account group update",
+        "owner": "5770067d85e95a5378fb948e",
+        "members": [
+          "5770067d85e95a5378fb948e"
+        ],
+        "passwordSalt": 'd39d58b9489d07ae',
+        "password": 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
+        "createdDate": "2016-08-03T00:00:00.000Z"
+      });
+
+      tstCtrl.changeAccountGroupPassword('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', 'test','test1234', function(err, data) {
+          console.log("");
+          // console.log(err, data);
+          expect(err, 'no error was returned').to.be.null;
+          expect(data, 'no data was returned').to.not.be.null;
+          data.saveStatus.should.equal('updated password');
+          done();
+      });
+    });
+    it('should return valid JSON response from the changeAccountGroupPassword function when all the account group cannot be found', function(done) {
+      stubGrpFindById.yields(null, null);
+      tstCtrl.changeAccountGroupPassword('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', 'testxyz','test1234', function(err, data) {
+          // console.log(err, data);
+          expect(err, 'no error was returned').to.not.be.null;
+          expect(data, 'no data was returned').to.not.be.null;
+          data.saveStatus.should.equal('failed to update password');
+          done();
+      });
+    });
+    it('should return valid JSON response from the changeAccountGroupPassword function when all the account group password is incorrect', function(done) {
+      let foundGroup = new accountGroup;
+      foundGroup._id = "57a24d3d962832317a82e15a";
+      foundGroup.groupCode = "TEST";
+      foundGroup.description = "Test account group";
+      foundGroup.owner = "5770067d85e95a5378fb948e";
+      foundGroup.members = ["579a57df4a4eff2f21d5a108", "5770067d85e95a5378fb948e"];
+      foundGroup.passwordSalt = 'd39d58b9489d07ae',
+      foundGroup.password = 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
+      foundGroup.createdDate = "2016-08-03";
+      stubGrpFindById.yields(null, foundGroup);
+
+      tstCtrl.changeAccountGroupPassword('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', 'testxyz','test1234', function(err, data) {
+          // console.log(err, data);
+          expect(err, 'no error was returned').to.not.be.null;
+          expect(data, 'no data was returned').to.not.be.null;
+          data.saveStatus.should.equal('failed to update password');
+          done();
+      });
+    });
+    it('should return valid JSON response from the changeAccountGroupPassword function when all the account group save failed', function(done) {
+      let foundGroup = new accountGroup;
+      foundGroup._id = "57a24d3d962832317a82e15a";
+      foundGroup.groupCode = "TEST";
+      foundGroup.description = "Test account group";
+      foundGroup.owner = "5770067d85e95a5378fb948e";
+      foundGroup.members = ["579a57df4a4eff2f21d5a108", "5770067d85e95a5378fb948e"];
+      foundGroup.passwordSalt = 'd39d58b9489d07ae',
+      foundGroup.password = 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
+      foundGroup.createdDate = "2016-08-03";
+      stubGrpFindById.yields(null, foundGroup);
+
+      stubGrpSave.yields(null, null);
+
+      tstCtrl.changeAccountGroupPassword('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', 'testxyz','test1234', function(err, data) {
+          // console.log(err, data);
+          expect(err, 'no error was returned').to.not.be.null;
+          expect(data, 'no data was returned').to.not.be.null;
+          data.saveStatus.should.equal('failed to update password');
+          done();
+      });
+    });
 
 
     //RESET-STUBS

@@ -135,7 +135,7 @@ const routes = function(moneyApiVars) {
             })
           })
         .put(function(req, res, next) {
-            acctController.updateAccountGroup(req.headers.userid, req.params.accgid, req.body, function(err, acctGroupData) {
+            acctController.updateAccountGroup(req.headers.userid, req.params.accgid, null, req.body, function(err, acctGroupData) {
               if (err || !acctGroupData || !acctGroupData.saveStatus || acctGroupData.saveStatus !== 'updated') {
                   res.status(err.number || 400).json({"error": "error updating accountgroup", "groupid":req.params.accgid, "errDetails" : err});
               } else {
@@ -152,6 +152,20 @@ const routes = function(moneyApiVars) {
                 }
             })
         });
+
+
+    acctRouter.route('/group/:accgid/changepassword')
+      .put(function(req, res, next) {
+          acctController.changeAccountGroupPassword(req.headers.userid, req.params.accgid,
+                                                    req.body.oldPassword, req.body.newPassword, function(err, acctGroupData) {
+
+            if (err || !acctGroupData || !acctGroupData.saveStatus || acctGroupData.saveStatus !== 'updated password') {
+                res.status(err.number || 400).json({"error": "error updating accountgroup", "groupid":req.params.accgid, "errDetails" : err});
+            } else {
+                res.status(200).json(acctGroupData);
+            }
+          })
+      })
 
 
     acctRouter.route('/group/:accgid/allaccounts')

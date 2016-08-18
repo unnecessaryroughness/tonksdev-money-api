@@ -20,6 +20,10 @@ const AccountGroupSchema = Schema({
                 required: true,
                 ref: 'user'
     }],
+    passwordSalt: {
+      type: String,
+      required: true
+    },
     password: {
         type: String,
         required: true
