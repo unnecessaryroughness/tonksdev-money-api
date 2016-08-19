@@ -9,7 +9,8 @@ const routes = function(moneyApiVars) {
 
     const HATEOASProtocol = 'http://',
           HATEOASJunction = '/account/',
-          HATEOASAcctGroupJunction = '/account/group/';
+          HATEOASAcctGroupJunction = '/account/group/',
+          HATEOASUserJunction = '/user/';
 
 
     acctRouter.route('/')
@@ -99,7 +100,7 @@ const routes = function(moneyApiVars) {
         .post(function(req, res, next) {
             acctController.createAccountGroup(req.body, function(err, newGroupData) {
                 if (!err && newGroupData.saveStatus === 'created') {
-                    // newGroupData.account = addHATEOS(newGroupData.account, req.headers.host);
+                    newGroupData.accountGroup = addGroupHATEOS(newGroupData.accountGroup, req.headers.host);
                     res.status(200).json(newGroupData);
                 } else {
                     res.status(err.number || 500).json(err);
@@ -116,7 +117,7 @@ const routes = function(moneyApiVars) {
                   res.status(err.number || 400).json({"error": "error retrieving account groups", "errDetails" : err});
                 } else {
                   acctGroupData.accountGroupList.forEach(function(acct, idx, arr) {
-                      // acct = addHATEOS(acct, req.headers.host);
+                      acct = addGroupHATEOS(acct, req.headers.host);
                   });
                   res.status(200).json(acctGroupData);
                 }
@@ -129,7 +130,7 @@ const routes = function(moneyApiVars) {
                 if (err || !acctGroupData) {
                   res.status(err.number || 400).json({"error": "error retrieving account group", "groupid":req.params.accgid, "errDetails" : err});
                 } else {
-                  // acctGroupData.accountGroup = addHATEOS(acctGroupData.accountGroup, req.headers.host);
+                  acctGroupData.accountGroup = addGroupHATEOS(acctGroupData.accountGroup, req.headers.host);
                   res.status(200).json(acctGroupData);
                 }
             })
@@ -139,6 +140,7 @@ const routes = function(moneyApiVars) {
               if (err || !acctGroupData || !acctGroupData.saveStatus || acctGroupData.saveStatus !== 'updated') {
                   res.status(err.number || 400).json({"error": "error updating accountgroup", "groupid":req.params.accgid, "errDetails" : err});
               } else {
+                  acctGroupData.accountGroup = addGroupHATEOS(acctGroupData.accountGroup, req.headers.host);
                   res.status(200).json(acctGroupData);
               }
             })
@@ -189,6 +191,16 @@ const routes = function(moneyApiVars) {
       acctRecord.links.self = HATEOASProtocol + hostAddress + HATEOASJunction + acctRecord.id;
       acctRecord.links.accountGroup = HATEOASProtocol + hostAddress + HATEOASAcctGroupJunction + acctRecord.accountGroup;
       return acctRecord;
+    }
+
+    function addGroupHATEOS(accgRecord, hostAddress) {
+      accgRecord.links.self = HATEOASProtocol + hostAddress + HATEOASAcctGroupJunction + accgRecord.id;
+      accgRecord.links.owner = HATEOASProtocol + hostAddress + HATEOASUserJunction + accgRecord.owner;
+      accgRecord.links.members = [];
+      accgRecord.members.forEach(function(user, idx, arr) {
+          accgRecord.links.members.push(HATEOASProtocol + hostAddress + HATEOASUserJunction + user);
+      })
+      return accgRecord;
     }
 
     return acctRouter;
