@@ -1,17 +1,15 @@
 const mongoose = require('mongoose'),
     debug = require('debug')('tonksDEV:money:api:controller:user'),
+    constructErrReturnObj = require('../common/moneyErrorObj'),
     tonksDEVUser = require('../models/tonksdevUserModel.js');
 
 const controller = function(moneyApiVars) {
   'use strict';
 
-  const stdErrMsg = 'User not found; error returned from database; controller is sending an error';
-  let stdErrObj = {'userError': {}};
-
   const findUser = function(uid, done) {
       tonksDEVUser.findById(uid, function(err, foundUser) {
           if (err || !foundUser) {
-              done(constructErrReturnObj(stdErrObj, err), null);
+              done(constructErrReturnObj(err, 'could not find user', 404), null);
           } else {
               done(null, {'user': constructUserObjectForRead(foundUser)});
           }
@@ -21,7 +19,7 @@ const controller = function(moneyApiVars) {
   const findUserByEmail = function(ueml, done) {
       tonksDEVUser.findOne({'email': ueml}, function(err, foundUser) {
           if (err || !foundUser) {
-              done(constructErrReturnObj(stdErrObj, err), null);
+              done(constructErrReturnObj(err, 'could not find user by email', 404), null);
           } else {
               done(null, {'user': constructUserObjectForRead(foundUser)});
           }
@@ -31,7 +29,7 @@ const controller = function(moneyApiVars) {
   const findAllUsers = function(done) {
       tonksDEVUser.find({}, function(err, foundUsers) {
         if (err || !foundUsers) {
-            done(constructErrReturnObj(stdErrObj, err), null);
+            done(constructErrReturnObj(err, 'could not find any users', 404), null);
         } else {
             done(null, {'userList': constructUserList(foundUsers)});
         }
@@ -41,7 +39,7 @@ const controller = function(moneyApiVars) {
   const findAllUsersByGroupId = function(groupId, done) {
       tonksDEVUser.find({'groups': groupId}, function(err, foundUsers) {
         if (err || !foundUsers) {
-            done(constructErrReturnObj(stdErrObj, err, 'error retrieving users for group ' + groupId), null);
+            done(constructErrReturnObj(err, 'error retrieving users for group ' + groupId, 404), null);
         } else {
             done(null, {'userList': constructUserList(foundUsers)});
         }
@@ -54,13 +52,13 @@ const controller = function(moneyApiVars) {
         let newUser = constructUserObjectForSave(reqBody.user);
         newUser.save(function(err, savedUser) {
             if (err) {
-              done(constructErrReturnObj(stdErrObj, err, 'error saving new user'), {'saveStatus': 'failed create'});
+              done(constructErrReturnObj(err, 'error saving new user', 500), {'saveStatus': 'failed create'});
             } else {
               done(null, {'saveStatus': 'created', 'user': constructUserObjectForRead(savedUser)});
             }
         });
       } else {
-        done(constructErrReturnObj(stdErrObj, 'displayName and email address were not supplied'), {'saveStatus': 'failed'});
+        done(constructErrReturnObj(null, 'displayName and email address were not supplied', 400), {'saveStatus': 'failed'});
       }
   }
 
@@ -69,12 +67,12 @@ const controller = function(moneyApiVars) {
     if (uid && reqBody && reqBody.user) {
       tonksDEVUser.findById(uid, function(err, foundUser) {
           if (err || !foundUser) {
-              done(constructErrReturnObj(stdErrObj, err, 'user could not be found in the database'), {'saveStatus': 'failed update'});
+              done(constructErrReturnObj(err, 'user could not be found in the database', 404), {'saveStatus': 'failed update'});
           } else {
               let updatedUser = constructUserObjectForUpdate(foundUser, reqBody.user);
               updatedUser.save(function(err, savedUser) {
                   if (err) {
-                    done(constructErrReturnObj(stdErrObj, err, 'user record could not be updated in the database'), {'saveStatus': 'failed update'});
+                    done(constructErrReturnObj(err, 'user record could not be updated in the database', 404), {'saveStatus': 'failed update'});
                   } else {
                     done(null, {'saveStatus': 'updated', 'user': constructUserObjectForRead(savedUser)});
                   }
@@ -82,7 +80,7 @@ const controller = function(moneyApiVars) {
           }
       })
     } else {
-      done(constructErrReturnObj(stdErrObj, 'No user supplied, or no user ID was supplied'), null);
+      done(constructErrReturnObj(null, 'No user supplied, or no user ID was supplied', 400), null);
     }
   }
 
@@ -90,11 +88,11 @@ const controller = function(moneyApiVars) {
   const deleteUser = function(uid, done) {
     tonksDEVUser.findById(uid, function(err, foundUser) {
         if (err || !foundUser) {
-            done(constructErrReturnObj(stdErrObj, err, 'error finding requested user in the database'), {'saveStatus': 'failed delete'});
+            done(constructErrReturnObj(err, 'error finding requested user in the database', 404), {'saveStatus': 'failed delete'});
         } else {
             foundUser.remove(function(err) {
               if (err) {
-                done(constructErrReturnObj(stdErrObj, err, 'error removing user from the database'), {'saveStatus': 'failed delete'});
+                done(constructErrReturnObj(err, 'error removing user from the database', 404), {'saveStatus': 'failed delete'});
               } else {
                 done(null, {'saveStatus': 'deleted'});
               }
@@ -160,12 +158,6 @@ const controller = function(moneyApiVars) {
           }
       }
       return userObject;
-  }
-
-  const constructErrReturnObj = function(stubErr, actualErr, textErr) {
-      stubErr.description = textErr;
-      stubErr.userError = actualErr;
-      return stubErr;
   }
 
   return {
