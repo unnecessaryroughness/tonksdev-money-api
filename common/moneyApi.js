@@ -46,7 +46,7 @@ const MoneyApi = function() {
               let apiKey = self.variables.apikey;
               let suppliedApiKey = req.headers.apikey;
               let matchedKeys = (apiKey === suppliedApiKey);
-              debug(matchedKeys ? 'MATCHED API KEYS' : 'FAILED TO MATCH API KEYS - REQUEST TERMINATED');
+              // debug(matchedKeys ? 'MATCHED API KEYS' : 'FAILED TO MATCH API KEYS - REQUEST TERMINATED');
               if (matchedKeys) {
                 next();
               } else {
