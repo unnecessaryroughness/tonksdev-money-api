@@ -21,43 +21,56 @@ const routes = function(moneyApiVars) {
             ]})
         })
         .post(function(req, res, next) {
-            userController.createUser(req.body, function(err, data) {
-                if (!err && data.saveStatus === 'created') {
-                    res.status(200).json(data);
-                } else {
-                    res.status(500).json(err);
-                }
-            })
+            if (req.headers.userid === moneyApiVars.systemacc) {
+              userController.createUser(req.body, function(err, data) {
+                  if (!err && data.saveStatus === 'created') {
+                      res.status(200).json(data);
+                  } else {
+                      res.status(500).json({"error": "error creating new user", "errDetails" : err});
+                  }
+              })
+            } else {
+              res.status(403).json({"error": "access denied", "errDetails" : null});
+            }
         });
 
 
     userRouter.route('/allusers')
         .get(function(req, res, next) {
-            userController.findAllUsers(function(err, userData) {
-              if (err || !userData) {
-                res.status(500).json({"error": "no user was not found", "errDetails" : err});
-              } else {
-                userData.userList.forEach(function(val, idx, arr) {
-                    val = addHATEOS(val, req.headers.host);
-                });
-                res.status(200).json(userData);
-              }
-            })
+            if (req.headers.userid === moneyApiVars.systemacc) {
+              userController.findAllUsers(function(err, userData) {
+                if (err || !userData) {
+                  res.status(500).json({"error": "no user was not found", "errDetails" : err});
+                } else {
+                  userData.userList.forEach(function(val, idx, arr) {
+                      val = addHATEOS(val, req.headers.host);
+                  });
+                  res.status(200).json(userData);
+                }
+              })
+            } else {
+              res.status(403).json({"error": "access denied", "errDetails" : null});
+            }
         });
 
 
     userRouter.route('/:uid')
       .get(function(req, res, next) {
-          userController.findUser(req.params.uid, function(err, userData) {
-              if (err || !userData) {
-                res.status(500).json({"error": "user was not found", "userid":req.params.uid, "errDetails" : err});
-              } else {
-                userData.user = addHATEOS(userData.user, req.headers.host);
-                res.status(200).json(userData);
-              }
-          })
+          if (req.headers.userid === moneyApiVars.systemacc || req.headers.userid === req.params.uid) {
+            userController.findUser(req.params.uid, function(err, userData) {
+                if (err || !userData) {
+                  res.status(500).json({"error": "user was not found", "userid":req.params.uid, "errDetails" : err});
+                } else {
+                  userData.user = addHATEOS(userData.user, req.headers.host);
+                  res.status(200).json(userData);
+                }
+            })
+          } else {
+            res.status(403).json({"error": "access denied", "errDetails" : null});
+          }
         })
       .put(function(req, res, next) {
+        if (req.headers.userid === moneyApiVars.systemacc || req.headers.userid === req.params.uid) {
           userController.updateUser(req.params.uid, req.body, function(err, data) {
             if (!err && data.saveStatus === 'updated') {
                 res.status(200).json(data);
@@ -65,8 +78,12 @@ const routes = function(moneyApiVars) {
                 res.status(500).json(err);
             }
           })
+        } else {
+          res.status(403).json({"error": "access denied", "errDetails" : null});
+        }
       })
       .delete(function(req, res, next) {
+        if (req.headers.userid === moneyApiVars.systemacc) {
           userController.deleteUser(req.params.uid, function(err, data) {
               if(!err && data.saveStatus === 'deleted') {
                   res.status(200).json(data);
@@ -74,34 +91,45 @@ const routes = function(moneyApiVars) {
                   res.status(500).json(err);
               }
           })
+        } else {
+          res.status(403).json({"error": "access denied", "errDetails" : null});
+        }
       });
 
 
     userRouter.route('/email/:ueml')
       .get(function(req, res, next) {
-          userController.findUserByEmail(req.params.ueml, function(err, userData) {
-              if (err || !userData) {
-                res.status(500).json({"error": "user was not found", "userid":req.params.ueml, "errDetails" : err});
-              } else {
-                userData.user = addHATEOS(userData.user, req.headers.host);
-                res.status(200).json(userData);
-              }
-          })
+          if (req.headers.userid === moneyApiVars.systemacc) {
+            userController.findUserByEmail(req.params.ueml, function(err, userData) {
+                if (err || !userData) {
+                  res.status(500).json({"error": "user was not found", "userid":req.params.ueml, "errDetails" : err});
+                } else {
+                  userData.user = addHATEOS(userData.user, req.headers.host);
+                  res.status(200).json(userData);
+                }
+            })
+          } else {
+            res.status(403).json({"error": "access denied", "errDetails" : null});
+          }
         });
 
 
     userRouter.route('/group/:gid')
       .get(function(req, res, next) {
+        if (req.headers.userid === moneyApiVars.systemacc) {
           userController.findAllUsersByGroupId(req.params.gid, function(err, userData) {
             if (err || !userData) {
               res.status(500).json({"error": "no user was not found in requested group", "errDetails" : err});
             } else {
-              userData.userList.forEach(function(val, idx, arr) {
-                  val = addHATEOS(val, req.headers.host);
-              });
+                userData.userList.forEach(function(val, idx, arr) {
+                    val = addHATEOS(val, req.headers.host);
+                });
               res.status(200).json(userData);
             }
-        });
+          });
+        } else {
+          res.status(403).json({"error": "access denied", "errDetails" : null});
+        }
       });
 
 

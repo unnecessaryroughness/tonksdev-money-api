@@ -14,6 +14,7 @@ function helpers(moneyApi) {
         moneyApi.variables.port      = process.env.PORT;
         moneyApi.variables.mongourl  = process.env.MONEYDB_PORT_27017_TCP_ADDR+':'+process.env.MONEYDB_PORT_27017_TCP_PORT + '/money?authSource=admin';
         moneyApi.variables.apikey    = process.env.API_KEY;
+        moneyApi.variables.systemacc = process.env.SYSTEMACC;
     };
 
     // terminator === the termination handler
