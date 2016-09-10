@@ -103,7 +103,7 @@ const routes = function(moneyApiVars) {
                     newGroupData.accountGroup = addGroupHATEOS(newGroupData.accountGroup, req.headers.host);
                     res.status(200).json(newGroupData);
                 } else {
-                    res.status(err.number || 500).json(err);
+                    res.status(err.number || 500).json({"error": "error creating account group", "errDetails" : err, "stack": newGroupData});
                 }
             })
         });

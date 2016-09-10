@@ -195,6 +195,7 @@ describe('"Account" FIND functional testing', function() {
             });
             it('should return valid JSON error data from the findAccountGroup function if no account group was found', function(done) {
               stubGrpFindById.yields({error: 101, errorMessage: "miscellaneous error"}, null);
+              stubGrpFind.yields({error: 101, errorMessage: "miscellaneous error"}, null);
               tstCtrl.findAccountGroup('5770067d85e95a5378fb948e', '1234567890', function(err, data) {
                   // console.log(err, data);
                   expect(err, 'no error was returned').to.not.be.null;
@@ -209,6 +210,22 @@ describe('"Account" FIND functional testing', function() {
                   expect(data, 'some data was returned').to.be.null;
                   done();
               });
+            });
+            it('should return valid JSON data from the findAccountGroup function when the groupCode is passed instead of an objectId', function(done) {
+                tstCtrl.findAccountGroup('5770067d85e95a5378fb948e', 'TEST', function(err, data) {
+                    // console.log(err, data);
+                    expect(err, 'error was returned').to.be.null;
+                    expect(data, 'no data was returned').to.not.be.null;
+                    expect(data.accountGroup.id, 'no ID for the first user').to.exist;
+                    expect(data.accountGroup.groupCode, 'no groupCode for the first account').to.exist;
+                    expect(data.accountGroup.description, 'no description for the first account').to.exist;
+                    expect(data.accountGroup.owner, 'no owner for the first account').to.exist;
+                    expect(data.accountGroup.members, 'no members for the first account').to.exist;
+                    expect(data.accountGroup.password, 'no password for the first account').to.exist;
+                    expect(data.accountGroup.createdDate, 'no createdDate for the first account').to.exist;
+                    expect(data.accountGroup.links, 'no links for the first account').to.exist;
+                    done();
+                  });
             });
 
 
@@ -541,6 +558,7 @@ describe('"Account" CRUD functional testing', function() {
         })
         it('should return valid JSON response from the deleteAccount function if the account cannot be deleted because the accountgroup doesnt exist', function(done) {
             stubGrpFindById.yields(null, null);
+            stubGrpFind.yields({error: 101, errorMessage: "miscellaneous error"}, null);
             tstCtrl.deleteAccount('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a108', 'test', function(err, data) {
                 // console.log(err, data);
                 expect(err, 'no error was returned').to.not.be.null;
@@ -869,6 +887,7 @@ describe('"Account" CRUD functional testing', function() {
     })
     it('should return valid JSON response from the changeAccountGroup function when the target group is not found', function(done) {
       stubGrpFindById.yields(null, null);
+      stubGrpFind.yields({error: 101, errorMessage: "miscellaneous error"}, null);
       tstCtrl.changeAccountGroup('5770067d85e95a5378fb948e', '579a57df4a4eff2f21d5a109', '579a57df4a4eff2f21d5a108', function(err, data) {
           // console.log(err, data);
           expect(err, 'no error was returned').to.not.be.null;

@@ -182,16 +182,35 @@ const controller = function(moneyApiVars) {
 
   const findAccountGroup = function(userid, groupid, done) {
       accountGroup.findById(groupid, function(err, foundGroup) {
-          if (err || !foundGroup) {
+          if (err) {
+            if (err.name === 'CastError' && err.path === '_id') {
+              accountGroup.find({"groupCode": groupid}, function(err, foundGroupList) {
+                if (err || !foundGroupList) {
+                  done(constructErrReturnObj(err, 'could not find the requested account group', 404), null);
+                } else {
+                  let foundGroup = foundGroupList[0];
+                  if (verifyEntitlement(userid, foundGroup)) {
+                    done(null, {'accountGroup': constructAcctGroupObjectForRead(foundGroup)});
+                  } else {
+                    done(constructErrReturnObj(err, 'permission denied', 403), null);
+                  }
+                }
+              });
+            } else {
               done(constructErrReturnObj(err, 'could not find the requested account group', 404), null);
+            }
           } else {
+            if (!foundGroup) {
+              done(constructErrReturnObj(null, 'could not find the requested account group', 404), null);
+            } else {
               if (verifyEntitlement(userid, foundGroup)) {
                 done(null, {'accountGroup': constructAcctGroupObjectForRead(foundGroup)});
               } else {
                 done(constructErrReturnObj(err, 'permission denied', 403), null);
               }
+            }
           }
-      })
+      });
   }
 
   const createAccountGroup = function(reqBody, done) {
