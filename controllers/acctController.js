@@ -4,7 +4,8 @@ const mongoose = require('mongoose'),
       accountGroup = require('../models/accountGroupModel'),
       constructErrReturnObj = require('../common/moneyErrorObj'),
       dateFuncs = require('../common/dateFunctions')(),
-      crypto = require('crypto');
+      crypto = require('crypto'),
+      userController = require('./userController')();
 
 const controller = function(moneyApiVars) {
   'use strict';
@@ -220,7 +221,11 @@ const controller = function(moneyApiVars) {
             if (err) {
               done(constructErrReturnObj(err, 'error saving new account group', 500), {'saveStatus': 'failed create'});
             } else {
-              done(null, {'saveStatus': 'created', 'accountGroup': constructAcctGroupObjectForRead(savedGroup)});
+              //ensure all group owner has the group name in the user record 'groups' list
+              userController.ensureUserIsInGroup(savedGroup.owner, savedGroup.groupCode, function(err, saveStatus) {
+                //all done... return save status
+                done(null, {'saveStatus': 'created', 'accountGroup': constructAcctGroupObjectForRead(savedGroup)});
+              });
             }
         });
       } else {

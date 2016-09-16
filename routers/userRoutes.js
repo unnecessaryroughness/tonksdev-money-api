@@ -97,6 +97,22 @@ const routes = function(moneyApiVars) {
       });
 
 
+    userRouter.route('/:uid/group/:gname')
+        .put(function(req, res, next) {
+            if (req.headers.userid === moneyApiVars.systemacc || req.headers.userid === req.params.uid) {
+              userController.ensureUserIsInGroup(req.params.uid, req.params.gname, function(err, data) {
+                  if (err || data.saveStatus === 'failed update') {
+                    res.status(500).json({"error": "error adding user to group", "errDetails" : err});
+                  } else {
+                    res.status(200).json(data);
+                  }
+              })
+            } else {
+              res.status(403).json({"error": "access denied", "errDetails" : null});
+            }
+        });
+
+
     userRouter.route('/email/:ueml')
       .get(function(req, res, next) {
           if (req.headers.userid === moneyApiVars.systemacc) {

@@ -149,7 +149,7 @@ describe('"User" FIND functional testing', function() {
 describe('"User" CRUD functional testing', function() {
 
     //DEFINE-VARIABLES
-        let tstCtrl, stubFind, stubFindById, stubFindOne, stubSave, stubRemove;
+        let tstCtrl, stubFind, stubFindById, stubFindOne, stubSave, stubRemove, stubUpdate;
 
         beforeEach(function() {
             tstCtrl = new ctrl({});
@@ -160,6 +160,7 @@ describe('"User" CRUD functional testing', function() {
           stubSave = sinon.stub(tonksDEVUser.prototype, 'save');
           stubRemove = sinon.stub(tonksDEVUser.prototype, 'remove');
           stubFindById = sinon.stub(tonksDEVUser, 'findById');
+          stubUpdate = sinon.stub(tonksDEVUser, 'update');
         })
 
     //CREATE-USER
@@ -270,6 +271,28 @@ describe('"User" CRUD functional testing', function() {
             })
         })
 
+
+    //ENSURE-USER-IS-IN-GROUP
+        it('should return valid JSON data from the ensureUserIsInGroup function', function(done) {
+          stubUpdate.yields(null, {"ok": 1, "nModified": 1, "n": 1});
+          tstCtrl.ensureUserIsInGroup('5783f4fb44daf4b9671bb304', 'TESTING', function(err, data) {
+              // console.log(err, data);
+              expect(err, 'an error was returned').to.be.null;
+              expect(data, 'no data was returned').to.not.be.null;
+              data.saveStatus.should.not.equal('failed update');
+              done();
+            })
+        })
+        it('should return valid JSON error data from the ensureUserIsInGroup function if the user could not be found', function(done) {
+          stubUpdate.yields({error: "made up error"}, null);
+          tstCtrl.ensureUserIsInGroup('5783f4fb44daf4b9671bb304', 'TESTING', function(err, data) {
+              // console.log(err, data);
+              expect(err, 'an error was returned').to.not.be.null;
+              expect(data, 'no data was returned').to.not.be.null;
+              data.saveStatus.should.equal('failed update');
+              done();
+            })
+        })
 
 
     //DELETE-USER

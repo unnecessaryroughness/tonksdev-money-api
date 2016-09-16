@@ -8,6 +8,7 @@ const sinon = require('sinon'),
       app = require('../common/moneyApi'),
       account = require('../models/accountModel'),
       accountGroup = require('../models/accountGroupModel'),
+      tonksDEVUser = require('../models/tonksdevUserModel.js'),
       supertest = require('supertest');
 
 chai.should();
@@ -282,7 +283,8 @@ describe('"Account" FIND functional testing', function() {
 describe('"Account" CRUD functional testing', function() {
 
     //DEFINE-VARIABLES
-        let tstCtrl, stubFind, stubFindById, stubGrpFind, stubGrpFindById, stubSave, stubGrpSave, stubRemove, stubGrpRemove, stubUpdate;
+        let tstCtrl, stubFind, stubFindById, stubGrpFind, stubGrpFindById, stubSave,
+            stubGrpSave, stubRemove, stubGrpRemove, stubUpdate, stubUsrUpdate;
 
         beforeEach(function() {
             tstCtrl = new ctrl({});
@@ -300,7 +302,9 @@ describe('"Account" CRUD functional testing', function() {
       stubGrpFindById = sinon.stub(accountGroup,            'findById');
       stubGrpSave     = sinon.stub(accountGroup.prototype,  'save');
       stubGrpRemove   = sinon.stub(accountGroup.prototype,  'remove');
+      stubUsrUpdate   = sinon.stub(tonksDEVUser,            'update');
     });
+
 
     beforeEach(function() {
       stubFind.yields(null, [{"_id" : "579a5a314a4eff2f21d5a109",
@@ -373,6 +377,8 @@ describe('"Account" CRUD functional testing', function() {
       })
 
       stubUpdate.yields(null, 1);
+
+      stubUsrUpdate.yields(null, {"ok": 1, "nModified": 1, "n": 1});
     });
 
     //CREATE-ACCOUNT
@@ -1031,13 +1037,19 @@ describe('"Account" CRUD functional testing', function() {
       });
     });
 
+//RESET-STUBS
+    after(function() {
+      account.find.restore();
+      account.findById.restore();
+      account.prototype.save.restore();
+      account.prototype.remove.restore();
+      account.update.restore();
 
-    //RESET-STUBS
-        after(function() {
-          accountGroup.findById.restore();
-          accountGroup.find.restore();
-          account.findById.restore();
-          account.find.restore();
-          account.prototype.save.restore();
-        });
+      accountGroup.find.restore();
+      accountGroup.findById.restore();
+      accountGroup.prototype.save.restore();
+      accountGroup.prototype.remove.restore();
+      tonksDEVUser.update.restore();
+    });
+
 });

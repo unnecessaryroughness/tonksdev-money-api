@@ -84,6 +84,24 @@ const controller = function(moneyApiVars) {
     }
   }
 
+  const ensureUserIsInGroup = function(uid, gname, done) {
+    if (uid && gname) {
+      tonksDEVUser.update({_id: uid}, {$addToSet: {'groups': gname}}, null, function(err, numAffected) {
+        if (err || numAffected === null || typeof numAffected === 'undefined' || numAffected.nModified < 0) {
+          done(constructErrReturnObj(err, 'could not update accountGroup', 500), {'saveStatus': 'failed update', 'recordsUpdated': numAffected || -1});
+        } else {
+          if (numAffected.nModified === 0) {
+            done(null, {'saveStatus': 'updated; warning: 0 records affected', 'recordsUpdated': numAffected});
+          } else if (numAffected.nModified === 1) {
+            done(null, {'saveStatus': 'updated', 'recordsUpdated': numAffected});
+          } else {
+            done(null, {'saveStatus': 'updated; warning: updated more than 1 account', 'recordsUpdated': numAffected});
+          }
+        }
+      });
+    }
+  }
+
 
   const deleteUser = function(uid, done) {
     tonksDEVUser.findById(uid, function(err, foundUser) {
@@ -167,7 +185,8 @@ const controller = function(moneyApiVars) {
     findAllUsersByGroupId: findAllUsersByGroupId,
     createUser: createUser,
     updateUser: updateUser,
-    deleteUser: deleteUser
+    deleteUser: deleteUser,
+    ensureUserIsInGroup: ensureUserIsInGroup
   }
 }
 
