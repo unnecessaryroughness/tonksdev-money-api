@@ -18,6 +18,10 @@ const controller = function(moneyApiVars) {
 
     let rtnVal = false;
     if (userid && accGroupRecord) {
+      if (userid === moneyApiVars.systemacc) {
+        return true;
+      }
+
       accGroupRecord.members.forEach(function(member, idx, list) {
         if (member == userid) {
           rtnVal = true;
@@ -260,6 +264,38 @@ const controller = function(moneyApiVars) {
   }
 
 
+  const amendAccountGroup = function(uid, accgid, accgpw, jsonAmendment, done) {
+    if (uid && accgid && jsonAmendment) {
+      accountGroup.findById(accgid, function(err, foundGroup) {
+          if (err || !foundGroup) {
+              done(constructErrReturnObj(err, 'accountgroup could not be found in the database', 404), {'saveStatus': 'failed update'});
+          } else {
+            //verify entitlement to update by checking if account is in an account group of which the user is a member
+            if (verifyEntitlement(uid, foundGroup, accgpw)) {
+              foundGroup.update(jsonAmendment, function(aerr, numAffected) {
+                if (aerr || numAffected === null || typeof numAffected === 'undefined' || numAffected.nModified < 0) {
+                  done(constructErrReturnObj(aerr, 'could not update accountGroup', 500), {'saveStatus': 'failed update', 'recordsUpdated': numAffected || -1});
+                } else {
+                  if (numAffected.nModified === 0) {
+                    done(null, {'saveStatus': 'updated; warning: 0 records affected', 'recordsUpdated': numAffected});
+                  } else if (numAffected.nModified === 1) {
+                    done(null, {'saveStatus': 'updated', 'recordsUpdated': numAffected});
+                  } else {
+                    done(null, {'saveStatus': 'updated; warning: updated more than 1 account', 'recordsUpdated': numAffected});
+                  }
+                }
+              });
+            } else {
+              done(constructErrReturnObj(err, 'permission denied', 403), null);
+            }
+        }
+      })
+    } else {
+      done(constructErrReturnObj('No user ID was supplied, or no accountgroup id was supplied, or no accountgroup details were supplied', 400), null);
+    }
+  }
+
+
   const deleteAccountGroup = function(uid, accgid, accgpw, done) {
     if (uid && accgid && accgpw && done) {
       accountGroup.findById(accgid, function(err, foundGroup) {
@@ -475,7 +511,8 @@ const controller = function(moneyApiVars) {
     deleteAccountGroup: deleteAccountGroup,
     deleteAccount: deleteAccount,
     changeAccountGroup: changeAccountGroup,
-    changeAccountGroupPassword: changeAccountGroupPassword
+    changeAccountGroupPassword: changeAccountGroupPassword,
+    amendAccountGroup: amendAccountGroup
   }
 }
 

@@ -153,6 +153,15 @@ const routes = function(moneyApiVars) {
                     res.status(200).json(acctGroupData);
                 }
             })
+        })
+        .patch(function(req, res, next) {
+            acctController.amendAccountGroup(req.headers.userid, req.params.accgid, null, req.body.command, function(err, acctGroupData) {
+              if (err || !acctGroupData || !acctGroupData.saveStatus || acctGroupData.saveStatus === 'could not update accountGroup') {
+                  res.status(err.number || 400).json({"error": "error updating accountgroup", "groupid":req.params.accgid, "errDetails" : err});
+              } else {
+                  res.status(200).json(acctGroupData);
+              }
+            })
         });
 
 

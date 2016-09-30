@@ -284,7 +284,7 @@ describe('"Account" CRUD functional testing', function() {
 
     //DEFINE-VARIABLES
         let tstCtrl, stubFind, stubFindById, stubGrpFind, stubGrpFindById, stubSave,
-            stubGrpSave, stubRemove, stubGrpRemove, stubUpdate, stubUsrUpdate;
+            stubGrpSave, stubRemove, stubGrpRemove, stubUpdate, stubUsrUpdate, stubGrpUpdate;
 
         beforeEach(function() {
             tstCtrl = new ctrl({});
@@ -302,6 +302,8 @@ describe('"Account" CRUD functional testing', function() {
       stubGrpFindById = sinon.stub(accountGroup,            'findById');
       stubGrpSave     = sinon.stub(accountGroup.prototype,  'save');
       stubGrpRemove   = sinon.stub(accountGroup.prototype,  'remove');
+      stubGrpUpdate   = sinon.stub(accountGroup,            'update');
+
       stubUsrUpdate   = sinon.stub(tonksDEVUser,            'update');
     });
 
@@ -377,8 +379,8 @@ describe('"Account" CRUD functional testing', function() {
       })
 
       stubUpdate.yields(null, 1);
-
       stubUsrUpdate.yields(null, {"ok": 1, "nModified": 1, "n": 1});
+      stubGrpUpdate.yields(null, {"ok": 1, "nModified": 1, "n": 1});
     });
 
     //CREATE-ACCOUNT
@@ -1036,6 +1038,66 @@ describe('"Account" CRUD functional testing', function() {
           done();
       });
     });
+
+
+    //AMEND-ACCOUNT-GROUP
+    it('should return valid JSON response from the amendAccountGroup function when all succeeds and a single record is updated', function(done) {
+      console.log("");
+      let foundGroup = new accountGroup;
+      foundGroup._id = "57a24d3d962832317a82e15a";
+      foundGroup.groupCode = "TEST";
+      foundGroup.description = "Test account group";
+      foundGroup.owner = "5770067d85e95a5378fb948e";
+      foundGroup.members = ["579a57df4a4eff2f21d5a108", "5770067d85e95a5378fb948e"];
+      foundGroup.passwordSalt = 'd39d58b9489d07ae',
+      foundGroup.password = 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
+      foundGroup.createdDate = "2016-08-03";
+      stubGrpFindById.yields(null, foundGroup);
+
+      tstCtrl.amendAccountGroup('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', 'test', "{$pull: {'groups': gname}}", function(err, data) {
+          // console.log(err, data);
+          expect(err, 'error was returned').to.be.null;
+          expect(data, 'no data was returned').to.not.be.null;
+          data.saveStatus.should.not.equal('failed update');
+          data.recordsUpdated.nModified.should.equal(1);
+          done();
+      })
+    })
+    it('should return valid JSON response from the amendAccountGroup function when permission was denied to change the accountgroup', function(done) {
+      let foundGroup = new accountGroup;
+      foundGroup._id = "57a24d3d962832317a82e15a";
+      foundGroup.groupCode = "TEST";
+      foundGroup.description = "Test account group";
+      foundGroup.owner = "5770067d85e95a5378fb948e";
+      foundGroup.members = ["579a57df4a4eff2f21d5a108", "5770067d85e95a5378fb948e"];
+      foundGroup.passwordSalt = 'd39d58b9489d07ae',
+      foundGroup.password = 'ff21c13a7ec0c883bac914fa72369325f3acc607c9968348acf41156f69edcd222a63a3f12908e8e5d0c28034c4c1d515a50c5c6d60c4afc199785cc722c6e41', //test
+      foundGroup.createdDate = "2016-08-03";
+      stubGrpFindById.yields(null, foundGroup);
+
+      tstCtrl.amendAccountGroup('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', 'testxyz', "{$pull: {'groups': gname}}", function(err, data) {
+          // console.log(err, data);
+          expect(err, 'error was returned').to.not.be.null;
+          expect(data, 'no data was returned').to.be.null;
+          err.number.should.equal(403);
+          done();
+      })
+    })
+    it('should return valid JSON response from the amendAccountGroup function the accountgroup could not be found', function(done) {
+      console.log("");
+      stubGrpFindById.yields(null, null);
+      
+      tstCtrl.amendAccountGroup('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', 'testxyz', "{$pull: {'groups': gname}}", function(err, data) {
+          // console.log(err, data);
+          expect(err, 'error was returned').to.not.be.null;
+          expect(data, 'no data was returned').to.not.be.null;
+          err.number.should.equal(404);
+          data.saveStatus.should.equal('failed update');
+          done();
+      })
+    })
+
+
 
 //RESET-STUBS
     after(function() {

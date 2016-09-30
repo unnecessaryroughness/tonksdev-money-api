@@ -1,7 +1,7 @@
 const mongoose = require('mongoose'),
     debug = require('debug')('tonksDEV:money:api:controller:user'),
     constructErrReturnObj = require('../common/moneyErrorObj'),
-    tonksDEVUser = require('../models/tonksdevUserModel.js');
+    tonksDEVUser = require('../models/tonksdevUserModel');
 
 const controller = function(moneyApiVars) {
   'use strict';
@@ -103,6 +103,26 @@ const controller = function(moneyApiVars) {
   }
 
 
+  const ensureUserIsNotInGroup = function(uid, gname, done) {
+    if (uid && gname) {
+      tonksDEVUser.update({_id: uid}, {$pull: {'groups': gname}}, null, function(err, numAffected) {
+        if (err || numAffected === null || typeof numAffected === 'undefined' || numAffected.nModified < 0) {
+          done(constructErrReturnObj(err, 'could not update accountGroup', 500), {'saveStatus': 'failed update', 'recordsUpdated': numAffected || -1});
+        } else {
+          if (numAffected.nModified === 0) {
+            done(null, {'saveStatus': 'updated; warning: 0 records affected', 'recordsUpdated': numAffected});
+          } else if (numAffected.nModified === 1) {
+            done(null, {'saveStatus': 'updated', 'recordsUpdated': numAffected});
+          } else {
+            done(null, {'saveStatus': 'updated; warning: updated more than 1 account', 'recordsUpdated': numAffected});
+          }
+        }
+      });
+    }
+  }
+
+
+
   const deleteUser = function(uid, done) {
     tonksDEVUser.findById(uid, function(err, foundUser) {
         if (err || !foundUser) {
@@ -120,7 +140,8 @@ const controller = function(moneyApiVars) {
   }
 
   const constructUserObjectForRead = function(userFromDB) {
-      let rtnUser = {};
+      let acctController = require('./acctController')();
+      let rtnUser = {id: null};
       if (userFromDB) {
           rtnUser.id = userFromDB._id;
           rtnUser.displayName = userFromDB.displayName;
@@ -186,7 +207,8 @@ const controller = function(moneyApiVars) {
     createUser: createUser,
     updateUser: updateUser,
     deleteUser: deleteUser,
-    ensureUserIsInGroup: ensureUserIsInGroup
+    ensureUserIsInGroup: ensureUserIsInGroup,
+    ensureUserIsNotInGroup: ensureUserIsNotInGroup
   }
 }
 
