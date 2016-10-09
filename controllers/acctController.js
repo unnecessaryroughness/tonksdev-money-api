@@ -73,7 +73,7 @@ const controller = function(moneyApiVars) {
 
 
   const findAllAccountsInGroup = function(userid, groupid, done) {
-      findAccountGroup(userid, groupid, function(err, foundGroup) {
+      findAccountGroup(userid, groupid, null, function(err, foundGroup) {
           if (err || !foundGroup) {
             done(constructErrReturnObj(err, 'could not find the requested account group', 404), null);
           } else {
@@ -145,7 +145,7 @@ const controller = function(moneyApiVars) {
             done(constructErrReturnObj(err, 'account record could not be found in the database', 404), {'saveStatus': 'failed remove; invalid account'});
           } else {
             //find account group
-            findAccountGroup(uid, foundAccount.accountGroup, function(err, foundGroup) {
+            findAccountGroup(uid, foundAccount.accountGroup, null, function(err, foundGroup) {
               if (err || !foundGroup) {
                 done(constructErrReturnObj(err, 'could not find accountgroup for specified account', 403), {'saveStatus': 'failed remove; invalid accountgroup'});
               } else {
@@ -175,7 +175,7 @@ const controller = function(moneyApiVars) {
 
 
   const findAllAccountGroups = function(userid, done) {
-      accountGroup.find({"members": userid}, function(err, foundGroups) {
+      accountGroup.find({"members": userid}, null, {sort: {groupCode: 1}}, function(err, foundGroups) {
         if (err || !foundGroups) {
           done(constructErrReturnObj(err, 'user is not a member of any groups', 404), null);
         } else {
@@ -185,7 +185,7 @@ const controller = function(moneyApiVars) {
   }
 
 
-  const findAccountGroup = function(userid, groupid, done) {
+  const findAccountGroup = function(userid, groupid, grouppw, done) {
       accountGroup.findById(groupid, function(err, foundGroup) {
           if (err) {
             if (err.name === 'CastError' && err.path === '_id') {
@@ -194,7 +194,7 @@ const controller = function(moneyApiVars) {
                   done(constructErrReturnObj(err, 'could not find the requested account group', 404), null);
                 } else {
                   let foundGroup = foundGroupList[0];
-                  if (verifyEntitlement(userid, foundGroup)) {
+                  if (verifyEntitlement(userid, foundGroup, grouppw)) {
                     done(null, {'accountGroup': constructAcctGroupObjectForRead(foundGroup)});
                   } else {
                     done(constructErrReturnObj(err, 'permission denied', 403), null);
@@ -227,7 +227,6 @@ const controller = function(moneyApiVars) {
             } else {
               //ensure all group owner has the group name in the user record 'groups' list
               userController.ensureUserIsInGroup(savedGroup.owner, savedGroup.groupCode, function(err, saveStatus) {
-                //all done... return save status
                 done(null, {'saveStatus': 'created', 'accountGroup': constructAcctGroupObjectForRead(savedGroup)});
               });
             }
@@ -315,7 +314,13 @@ const controller = function(moneyApiVars) {
                     if (err) {
                       done(constructErrReturnObj(err, 'error removing accountgroup from database', 500), {'saveStatus': 'failed remove'});
                     } else {
-                      done(null, {'saveStatus': 'deleted'});
+                      userController.ensureNoUserIsInGroup(uid, foundGroup.groupCode, function(err, numAffected) {
+                        if (err) {
+                          done(constructErrReturnObj(err, 'error removing accountgroup from users', 500), {'saveStatus': 'failed remove'});
+                        } else {
+                          done(null, {'saveStatus': 'deleted'});
+                        }
+                      })
                     }
                   })
                 }
@@ -330,7 +335,7 @@ const controller = function(moneyApiVars) {
 
 
   const changeAccountGroup = function(uid, acctid, accgid, done) {
-      findAccountGroup(uid, accgid, function(err, foundGroup) {
+      findAccountGroup(uid, accgid, null, function(err, foundGroup) {
           if (err || !foundGroup) {
             done(constructErrReturnObj(err, 'could not find accountgroup to update', 404), {'saveStatus': 'failed update; invalid accountgroup', 'recordsUpdated': 0});
           } else {
@@ -512,7 +517,8 @@ const controller = function(moneyApiVars) {
     deleteAccount: deleteAccount,
     changeAccountGroup: changeAccountGroup,
     changeAccountGroupPassword: changeAccountGroupPassword,
-    amendAccountGroup: amendAccountGroup
+    amendAccountGroup: amendAccountGroup,
+    verifyEntitlement: verifyEntitlement
   }
 }
 

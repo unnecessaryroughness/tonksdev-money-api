@@ -126,7 +126,7 @@ const routes = function(moneyApiVars) {
 
       acctRouter.route('/group/:accgid')
         .get(function(req, res, next) {
-            acctController.findAccountGroup(req.headers.userid, req.params.accgid, function(err, acctGroupData) {
+            acctController.findAccountGroup(req.headers.userid, req.params.accgid, null, function(err, acctGroupData) {
                 if (err || !acctGroupData) {
                   res.status(err.number || 400).json({"error": "error retrieving account group", "groupid":req.params.accgid, "errDetails" : err});
                 } else {
@@ -136,7 +136,7 @@ const routes = function(moneyApiVars) {
             })
           })
         .put(function(req, res, next) {
-            acctController.updateAccountGroup(req.headers.userid, req.params.accgid, null, req.body, function(err, acctGroupData) {
+            acctController.updateAccountGroup(req.headers.userid, req.params.accgid, req.body.accountGroup.password || moneyApiVars.nulldefstr, req.body, function(err, acctGroupData) {
               if (err || !acctGroupData || !acctGroupData.saveStatus || acctGroupData.saveStatus !== 'updated') {
                   res.status(err.number || 400).json({"error": "error updating accountgroup", "groupid":req.params.accgid, "errDetails" : err});
               } else {
@@ -146,7 +146,7 @@ const routes = function(moneyApiVars) {
             })
         })
         .delete(function(req, res, next) {
-            acctController.deleteAccountGroup(req.headers.userid, req.params.accgid, req.body.accountGroup.password, function(err, acctGroupData) {
+            acctController.deleteAccountGroup(req.headers.userid, req.params.accgid, req.body.accountGroup.password || moneyApiVars.nulldefstr, function(err, acctGroupData) {
                 if (err || !acctGroupData || !acctGroupData.saveStatus || acctGroupData.saveStatus !== 'deleted') {
                     res.status(err.number || 400).json({"error": "error removing accountgroup", "groupid":req.params.accgid, "errDetails" : err});
                 } else {

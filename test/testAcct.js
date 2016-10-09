@@ -179,7 +179,7 @@ describe('"Account" FIND functional testing', function() {
         //FIND-ACCOUNT-GROUP-BY-ID
             it('should return valid JSON data from the findAccountGroup function', function(done) {
                 console.log("");
-                tstCtrl.findAccountGroup('5770067d85e95a5378fb948e', '1234567890', function(err, data) {
+                tstCtrl.findAccountGroup('5770067d85e95a5378fb948e', '1234567890', null, function(err, data) {
                     // console.log(err, data);
                     expect(err, 'error was returned').to.be.null;
                     expect(data, 'no data was returned').to.not.be.null;
@@ -197,7 +197,7 @@ describe('"Account" FIND functional testing', function() {
             it('should return valid JSON error data from the findAccountGroup function if no account group was found', function(done) {
               stubGrpFindById.yields({error: 101, errorMessage: "miscellaneous error"}, null);
               stubGrpFind.yields({error: 101, errorMessage: "miscellaneous error"}, null);
-              tstCtrl.findAccountGroup('5770067d85e95a5378fb948e', '1234567890', function(err, data) {
+              tstCtrl.findAccountGroup('5770067d85e95a5378fb948e', '1234567890', null, function(err, data) {
                   // console.log(err, data);
                   expect(err, 'no error was returned').to.not.be.null;
                   expect(data, 'some data was returned').to.be.null;
@@ -205,7 +205,7 @@ describe('"Account" FIND functional testing', function() {
               });
             });
             it('should return valid JSON error data from the findAccountGroup function if access was denied', function(done) {
-              tstCtrl.findAccountGroup('xxxxxxxxxxxxxxxxxxxxx', '1234567890', function(err, data) {
+              tstCtrl.findAccountGroup('xxxxxxxxxxxxxxxxxxxxx', '1234567890', null, function(err, data) {
                   // console.log(err, data);
                   expect(err, 'no error was returned').to.not.be.null;
                   expect(data, 'some data was returned').to.be.null;
@@ -213,7 +213,7 @@ describe('"Account" FIND functional testing', function() {
               });
             });
             it('should return valid JSON data from the findAccountGroup function when the groupCode is passed instead of an objectId', function(done) {
-                tstCtrl.findAccountGroup('5770067d85e95a5378fb948e', 'TEST', function(err, data) {
+                tstCtrl.findAccountGroup('5770067d85e95a5378fb948e', 'TEST', null, function(err, data) {
                     // console.log(err, data);
                     expect(err, 'error was returned').to.be.null;
                     expect(data, 'no data was returned').to.not.be.null;
@@ -1086,7 +1086,7 @@ describe('"Account" CRUD functional testing', function() {
     it('should return valid JSON response from the amendAccountGroup function the accountgroup could not be found', function(done) {
       console.log("");
       stubGrpFindById.yields(null, null);
-      
+
       tstCtrl.amendAccountGroup('5770067d85e95a5378fb948e', '57a24d3d962832317a82e15a', 'testxyz', "{$pull: {'groups': gname}}", function(err, data) {
           // console.log(err, data);
           expect(err, 'error was returned').to.not.be.null;

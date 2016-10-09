@@ -101,24 +101,25 @@ const routes = function(moneyApiVars) {
     userRouter.route('/:uid/group/:gname')
         .put(function(req, res, next) {
             if (req.headers.userid === moneyApiVars.systemacc || req.headers.userid === req.params.uid) {
-              userController.ensureUserIsInGroup(req.params.uid, req.params.gname, function(err, data) {
-                  if (err || data.saveStatus === 'failed update') {
-                    res.status(500).json({"error": "error adding user to group", "errDetails" : err});
-                  } else {
-                    acctController.findAccountGroup(moneyApiVars.systemacc, req.params.gname, function(err, accGroupData) {
-                      if (err || !accGroupData) {
-                        res.status(500).json({"error": "error resolving account group id from name", "errDetails" : err});
-                      } else {
-                        acctController.amendAccountGroup(moneyApiVars.systemacc, accGroupData.accountGroup.id, null, {"$addToSet": {"members": req.params.uid}}, function(err, affected) {
-                          if (err || !affected) {
-                            res.status(500).json({"error": "error adding user to group members list", "errDetails" : err});
+              acctController.findAccountGroup(moneyApiVars.systemacc, req.params.gname, req.body.accountGroup.password || moneyApiVars.nulldefstr, function(err, accGroupData) {
+                if (err || !accGroupData) {
+                  res.status(500).json({"error": "error resolving account group id from name", "errDetails" : err});
+                } else {
+                  acctController.amendAccountGroup(moneyApiVars.systemacc, accGroupData.accountGroup.id, null, {"$addToSet": {"members": req.params.uid}}, function(err, affected) {
+                    if (err || !affected) {
+                      res.status(500).json({"error": "error adding user to group members list", "errDetails" : err});
+                    } else {
+                      //added user id to group membership
+                      userController.ensureUserIsInGroup(req.params.uid, req.params.gname, function(err, data) {
+                          if (err || data.saveStatus === 'failed update') {
+                            res.status(500).json({"error": "error adding user to group", "errDetails" : err});
                           } else {
                             res.status(200).json(data);
                           }
-                        })
-                      }
-                    })
-                  }
+                      })
+                    }
+                  })
+                }
               })
             } else {
               res.status(403).json({"error": "access denied", "errDetails" : null});
@@ -126,24 +127,25 @@ const routes = function(moneyApiVars) {
         })
         .delete(function(req, res, next) {
             if (req.headers.userid === moneyApiVars.systemacc || req.headers.userid === req.params.uid) {
-              userController.ensureUserIsNotInGroup(req.params.uid, req.params.gname, function(err, data) {
-                  if (err || data.saveStatus === 'failed update') {
-                    res.status(500).json({"error": "error removing user from group", "errDetails" : err});
+                acctController.findAccountGroup(moneyApiVars.systemacc, req.params.gname, null, function(err, accGroupData) {
+                  if (err || !accGroupData) {
+                    res.status(500).json({"error": "error resolving account group id from name", "errDetails" : err});
                   } else {
-                    acctController.findAccountGroup(moneyApiVars.systemacc, req.params.gname, function(err, accGroupData) {
-                      if (err || !accGroupData) {
-                        res.status(500).json({"error": "error resolving account group id from name", "errDetails" : err});
+                    acctController.amendAccountGroup(moneyApiVars.systemacc, accGroupData.accountGroup.id, null, {"$pull": {"members": req.params.uid}}, function(err, affected) {
+                      if (err || !affected) {
+                        res.status(500).json({"error": "error pulling user from group members list", "errDetails" : err});
                       } else {
-                        acctController.amendAccountGroup(moneyApiVars.systemacc, accGroupData.accountGroup.id, null, {"$pull": {"members": req.headers.userid}}, function(err, affected) {
-                          if (err || !affected) {
-                            res.status(500).json({"error": "error pulling user from group members list", "errDetails" : err});
-                          } else {
-                            res.status(200).json(data);
-                          }
+                        userController.ensureUserIsNotInGroup(req.params.uid, req.params.gname, function(err, data) {
+                            if (err || data.saveStatus === 'failed update') {
+                              res.status(500).json({"error": "error removing user from group", "errDetails" : err});
+                            } else {
+                              res.status(200).json(data);
+                            }
                         })
-                      }
-                    })
-                  }
+                    }
+
+                  })
+                }
               })
             } else {
               res.status(403).json({"error": "access denied", "errDetails" : null});
