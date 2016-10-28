@@ -392,9 +392,13 @@ const controller = function(moneyApiVars) {
 
 
   const verifyAccountGroupPassword = function(accgDbObject, plainPW) {
-      let comp1 = accgDbObject.password;
-      let comp2 = sha512(plainPW, accgDbObject.passwordSalt).passwordHash;
-      return (comp1 === comp2);
+      if (accgDbObject) {
+        let comp1 = accgDbObject.password;
+        let comp2 = sha512(plainPW, accgDbObject.passwordSalt).passwordHash;
+        return (comp1 === comp2);
+      } else {
+        return false;
+      }
   };
 
 
