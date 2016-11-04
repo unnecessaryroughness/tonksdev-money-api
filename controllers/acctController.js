@@ -408,6 +408,7 @@ const controller = function(moneyApiVars) {
           rtnAcct.id = acctFromDB._id;
           rtnAcct.accountCode  = acctFromDB.accountCode;
           rtnAcct.accountName  = acctFromDB.accountName;
+          rtnAcct.accountType  = acctFromDB.accountType;
           rtnAcct.bankName     = acctFromDB.bankName;
           rtnAcct.accountGroup = acctFromDB.accountGroup;
           rtnAcct.balance      = acctFromDB.balance;
@@ -432,6 +433,7 @@ const controller = function(moneyApiVars) {
     if (acctFromApp) {
         newAcct.accountCode = acctFromApp.accountCode;
         newAcct.accountName = acctFromApp.accountName || 'Unnamed account';
+        newAcct.accountType = acctFromApp.accountType || 'CA';
         newAcct.bankName    = acctFromApp.bankName || 'Unnamed bank';
         newAcct.accountGroup = acctFromApp.accountGroup;
         newAcct.balance     = acctFromApp.balance || 0.00;
@@ -445,6 +447,7 @@ const controller = function(moneyApiVars) {
       if (acctFromApp) {
           if (acctFromApp.accountCode)  acctObject.accountCode  = acctFromApp.accountCode;
           if (acctFromApp.accountName)  acctObject.accountName  = acctFromApp.accountName;
+          if (acctFromApp.accountType)  acctObject.accountType  = acctFromApp.accountType;
           if (acctFromApp.bankName)     acctObject.bankName     = acctFromApp.bankName;
           if (acctFromApp.accountGroup) acctObject.accountGroup = acctFromApp.accountGroup;
           if (acctFromApp.balance)      acctObject.balance      = acctFromApp.balance;

@@ -10,6 +10,11 @@ const AccountSchema = Schema({
         type: String,
         required: true
     },
+    accountType: {
+        type: String,
+        required: false,
+        default: 'CA'
+    },
     bankName: {
         type: String,
         required: true
