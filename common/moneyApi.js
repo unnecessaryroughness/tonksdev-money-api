@@ -60,10 +60,11 @@ const MoneyApi = function() {
             let rootRouter = require('../routers/rootRoutes')(self.variables);
             let userRouter = require('../routers/userRoutes')(self.variables);
             let acctRouter = require('../routers/acctRoutes')(self.variables);
+            let catRouter  = require('../routers/categoryRoutes')(self.variables);
             self.app.use('/', rootRouter);
             self.app.use('/user', userRouter);
             self.app.use('/account', acctRouter);
-
+            self.app.use('/category', catRouter);
 
         //default error handler - throw 404
             self.app.use(function(req, res, next) {
@@ -78,7 +79,7 @@ const MoneyApi = function() {
             if (self.variables.environment === 'development') {
                 self.app.use(function(err, req, res, next) {
                     res.status(err.status || 500);
-                    debug('debug error: ' + err.message + ' / ' + err);
+                    debug('debug error: ' + err.message + ' / ' + err + '  ' + req.url);
                     res.end();
                 });
             }
