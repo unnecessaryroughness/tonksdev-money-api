@@ -6,15 +6,70 @@ const mongoose = require('mongoose'),
 const controller = function(moneyApiVars) {
   'use strict';
 
-  // const findUser = function(uid, done) {
-  //     tonksDEVUser.findById(uid, function(err, foundUser) {
-  //         if (err || !foundUser) {
-  //             done(constructErrReturnObj(err, 'could not find user', 404), null);
-  //         } else {
-  //             done(null, {'user': constructUserObjectForRead(foundUser)});
-  //         }
-  //     })
-  // }
+  const findCategory = function(cid, done) {
+      category.findById(cid, function(err, foundCategory) {
+          if (err || !foundCategory) {
+              done(constructErrReturnObj(err, 'could not find category', 404), null);
+          } else {
+              done(null, {'category': constructCategoryObjectForRead(foundCategory)});
+          }
+      })
+  }
+
+
+  const createCategory = function(reqBody, done) {
+    if (reqBody.category.categoryName && reqBody.category.accountGroup) {
+      let newCategory = constructCategoryObjectForSave(reqBody.category);
+      newCategory.save(function(err, savedCategory) {
+          if (err) {
+            done(constructErrReturnObj(err, 'error saving new category', 500), {'saveStatus': 'failed create'});
+          } else {
+            done(null, {'saveStatus': 'created', 'category': constructCategoryObjectForRead(savedCategory)});
+          }
+      });
+    } else {
+      done(constructErrReturnObj(null, 'categoryName and accountGroup were not supplied', 500), {'saveStatus': 'failed'});
+    }
+  }
+
+
+  const updateCategory = function(cid, reqBody, done) {
+    if (cid && reqBody) {
+      category.findById(cid, function(err, foundCategory) {
+        if (err || !foundCategory) {
+          done(constructErrReturnObj(err, 'category could not be found in the database', 404), {'saveStatus': 'failed update'});
+        } else {
+          let updatedCategory = constructCategoryObjectForUpdate(foundCategory, reqBody.category);
+          updatedCategory.save(function(err, savedCategory) {
+              if (err) {
+                done(constructErrReturnObj(err, 'category record could not be updated in the database', 400), {'saveStatus': 'failed update'});
+              } else {
+                done(null, {'saveStatus': 'updated', 'category': constructCategoryObjectForRead(savedCategory)});
+              }
+          })
+        }
+      });
+    }
+  }
+
+
+  const deleteCategory = function(cid, reqBody, done) {
+    if (cid && reqBody) {
+      category.findById(cid, function(err, foundCategory) {
+        if (err || !foundCategory) {
+          done(constructErrReturnObj(err, 'category could not be found in the database', 404), {'saveStatus': 'failed update'});
+        } else {
+          foundCategory.remove(function(err) {
+            if (err) {
+              done(constructErrReturnObj(err, 'error removing category from database', 500), {'saveStatus': 'failed remove'});
+            } else {
+              done(null, {'saveStatus': 'deleted'});
+            }
+          })
+        }
+      });
+    }
+  }
 
   const findAllCategories = function(acctGroup, done) {
       category.find({'accountGroup': acctGroup}, function(err, foundCategories) {
@@ -48,42 +103,29 @@ const controller = function(moneyApiVars) {
       return rtnCatList;
   }
 
-  // const constructUserObjectForSave = function(userFromApp) {
-  //     let newUser = new tonksDEVUser;
-  //     if (userFromApp) {
-  //         newUser.displayName = userFromApp.displayName;
-  //         newUser.email = userFromApp.email;
-  //         newUser.image = userFromApp.image || '';
-  //         newUser.payday = userFromApp.payday || 27;
-  //         newUser.biography = userFromApp.biography || '';
-  //         newUser.joinDate = userFromApp.joinDate || '2016-01-01';
-  //         newUser.groups = userFromApp.groups || [];
-  //         if (newUser.groups.indexOf('ALLUSERS') < 0) {
-  //           newUser.groups.push('ALLUSERS');
-  //         }
-  //     }
-  //     return newUser;
-  // }
-  //
-  // const constructUserObjectForUpdate = function(userObject, userFromApp) {
-  //     if (userFromApp) {
-  //         if (userFromApp.displayName) userObject.displayName = userFromApp.displayName;
-  //         if (userFromApp.email) userObject.email = userFromApp.email;
-  //         if (userFromApp.image) userObject.image = userFromApp.image;
-  //         if (userFromApp.payday) userObject.payday = userFromApp.payday;
-  //         if (userFromApp.payday) userObject.biography = userFromApp.biography;
-  //         if (userFromApp.payday) userObject.joinDate = userFromApp.joinDate;
-  //         if (userFromApp.groups) userObject.groups = userFromApp.groups;
-  //         if (userObject.groups && userObject.groups.indexOf('ALLUSERS') < 0) {
-  //           userObject.groups.push('ALLUSERS');
-  //         }
-  //     }
-  //     return userObject;
-  // }
+  const constructCategoryObjectForSave = function(categoryFromApp) {
+      let newCategory = new category;
+      if (categoryFromApp) {
+          newCategory.categoryName = categoryFromApp.categoryName;
+          newCategory.accountGroup = categoryFromApp.accountGroup;
+      }
+      return newCategory;
+  }
+
+  const constructCategoryObjectForUpdate = function(categoryObject, categoryFromApp) {
+      if (categoryFromApp) {
+          if (categoryFromApp.categoryName) categoryObject.categoryName = categoryFromApp.categoryName;
+          if (categoryFromApp.accountGroup) categoryObject.accountGroup = categoryFromApp.accountGroup;
+      }
+      return categoryObject;
+  }
 
 
   return {
-    // findUser: findUser,
+    findCategory: findCategory,
+    updateCategory: updateCategory,
+    createCategory: createCategory,
+    deleteCategory: deleteCategory,
     findAllCategories: findAllCategories
   }
 }

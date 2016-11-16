@@ -18,19 +18,19 @@ const routes = function(moneyApiVars) {
                   {'getCategoryById': HATEOASProtocol + req.headers.host + HATEOASJunction + '[category-id]'}
             ]})
         })
-        // .post(function(req, res, next) {
-            // if (req.headers.userid === moneyApiVars.systemacc) {
-            //   userController.createUser(req.body, function(err, data) {
-            //       if (!err && data.saveStatus === 'created') {
-            //           res.status(200).json(data);
-            //       } else {
-            //           res.status(500).json({"error": "error creating new user", "errDetails" : err});
-            //       }
-            //   })
-            // } else {
-            //   res.status(403).json({"error": "access denied", "errDetails" : null});
-            // }
-        // });
+        .post(function(req, res, next) {
+          accountController.findAccountGroup(req.headers.userid, req.body.category.accountGroup, null, function(err, categoryData) {
+            if (err || !categoryData) {
+              res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
+            } else {
+              //found category, so user has the authority to update it
+              categoryController.createCategory(req.body, function(err, newCategory) {
+                newCategory.category = addHATEOS(newCategory.category, req.headers.host);
+                res.status(200).json(newCategory);
+              })
+            }
+          })
+        })
 
 
     categoryRouter.route('/allcategories/:gid')
@@ -39,12 +39,12 @@ const routes = function(moneyApiVars) {
               //check that the current user is in the requested account group
               accountController.findAccountGroup(req.headers.userid, req.params.gid, null, function(err, groupData) {
                 if (err || !groupData) {
-                  res.status(err.number || 500).json({"error": "access denied", "errDetails": err})
+                  res.status(err.number || 403).json({"error": "access denied", "errDetails": err})
                 } else {
                   //get all categories from that account group
                   categoryController.findAllCategories(req.params.gid, function(err, catData) {
                     if (err || !catData) {
-                      res.status(err.number || 500).json({"error": "error accessing category data", "errDetails" : err});
+                      res.status(err.number || 404).json({"error": "could not find any categories", "errDetails" : err});
                     } else {
                       catData.categoryList.forEach(function(val, idx, arr) {
                           val = addHATEOS(val, req.headers.host);
@@ -58,47 +58,61 @@ const routes = function(moneyApiVars) {
       });
 
 
-    // categoryRouter.route('/:cid')
-    //   .get(function(req, res, next) {
-      //     if (req.headers.userid === moneyApiVars.systemacc || req.headers.userid === req.params.uid) {
-      //       userController.findUser(req.params.uid, function(err, userData) {
-      //           if (err || !userData) {
-      //             res.status(500).json({"error": "user was not found", "userid":req.params.uid, "errDetails" : err});
-      //           } else {
-      //             userData.user = addHATEOS(userData.user, req.headers.host);
-      //             res.status(200).json(userData);
-      //           }
-      //       })
-      //     } else {
-      //       res.status(403).json({"error": "access denied", "errDetails" : null});
-      //     }
-      //   })
-      // .put(function(req, res, next) {
-      //   if (req.headers.userid === moneyApiVars.systemacc || req.headers.userid === req.params.uid) {
-      //     userController.updateUser(req.params.uid, req.body, function(err, data) {
-      //       if (!err && data.saveStatus === 'updated') {
-      //           res.status(200).json(data);
-      //       } else {
-      //           res.status(500).json(err);
-      //       }
-      //     })
-      //   } else {
-      //     res.status(403).json({"error": "access denied", "errDetails" : null});
-      //   }
-      // })
-      // .delete(function(req, res, next) {
-      //   if (req.headers.userid === moneyApiVars.systemacc) {
-      //     userController.deleteUser(req.params.uid, function(err, data) {
-      //         if(!err && data.saveStatus === 'deleted') {
-      //             res.status(200).json(data);
-      //         } else {
-      //             res.status(500).json(err);
-      //         }
-      //     })
-      //   } else {
-      //     res.status(403).json({"error": "access denied", "errDetails" : null});
-      //   }
-      // });
+    categoryRouter.route('/:cid')
+      .get(function(req, res, next) {
+          findAndValidateCategory(req.headers.userid, req.params.cid, function(err, categoryData) {
+            if (err || !categoryData) {
+              res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
+            } else {
+              categoryData.category = addHATEOS(categoryData.category, req.headers.host);
+              res.status(200).json(categoryData);
+            }
+          })
+        })
+      .put(function(req, res, next) {
+        findAndValidateCategory(req.headers.userid, req.params.cid, function(err, categoryData) {
+          if (err || !categoryData) {
+            res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
+          } else {
+            //found category, so user has the authority to update it
+            categoryController.updateCategory(req.params.cid, req.body, function(err, updatedCategory) {
+              updatedCategory.category = addHATEOS(updatedCategory.category, req.headers.host);
+              res.status(200).json(updatedCategory);
+            })
+          }
+        })
+      })
+      .delete(function(req, res, next) {
+        findAndValidateCategory(req.headers.userid, req.params.cid, function(err, categoryData) {
+          if (err || !categoryData) {
+            res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
+          } else {
+            //found category, so user has the authority to update it
+            categoryController.deleteCategory(req.params.cid, req.body, function(err, data) {
+              res.status(200).json(data);
+            })
+          }
+        })
+      });
+
+
+    function findAndValidateCategory(uid, cid, done) {
+      //check the category exists
+      categoryController.findCategory(cid, function(err, categoryData) {
+          if (err || !categoryData) {
+            done({"error": "category was not found", "categoryid": cid, "errDetails" : err}, null);
+          } else {
+            //check that the user is in the account group for the category
+            accountController.findAccountGroup(uid, categoryData.category.accountGroup, null, function(err, groupData) {
+              if (err || !groupData) {
+                done({"error": "access denied", "errDetails" : err}, null);
+              } else {
+                done(null, categoryData);
+              }
+            })
+          }
+      })
+    }
 
 
     function addHATEOS(catRecord, hostAddress) {
