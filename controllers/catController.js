@@ -53,15 +53,15 @@ const controller = function(moneyApiVars) {
   }
 
 
-  const deleteCategory = function(cid, reqBody, done) {
-    if (cid && reqBody) {
+  const deleteCategory = function(cid, done) {
+    if (cid) {
       category.findById(cid, function(err, foundCategory) {
         if (err || !foundCategory) {
-          done(constructErrReturnObj(err, 'category could not be found in the database', 404), {'saveStatus': 'failed update'});
+          done(constructErrReturnObj(err, 'category could not be found in the database', 404), {'saveStatus': 'failed delete'});
         } else {
           foundCategory.remove(function(err) {
             if (err) {
-              done(constructErrReturnObj(err, 'error removing category from database', 500), {'saveStatus': 'failed remove'});
+              done(constructErrReturnObj(err, 'error removing category from database', 500), {'saveStatus': 'failed delete'});
             } else {
               done(null, {'saveStatus': 'deleted'});
             }

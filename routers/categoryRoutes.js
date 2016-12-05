@@ -88,7 +88,7 @@ const routes = function(moneyApiVars) {
             res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
           } else {
             //found category, so user has the authority to update it
-            categoryController.deleteCategory(req.params.cid, req.body, function(err, data) {
+            categoryController.deleteCategory(req.params.cid, function(err, data) {
               res.status(200).json(data);
             })
           }
