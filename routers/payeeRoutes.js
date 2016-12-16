@@ -42,14 +42,14 @@ const routes = function(moneyApiVars) {
                   res.status(err.number || 403).json({"error": "access denied", "errDetails": err})
                 } else {
                   //get all payees from that account group
-                  payeeController.findAllPayees(req.params.gid, function(err, catData) {
-                    if (err || !catData) {
+                  payeeController.findAllPayees(req.params.gid, function(err, payeeData) {
+                    if (err || !payeeData) {
                       res.status(err.number || 404).json({"error": "could not find any payees", "errDetails" : err});
                     } else {
-                      catData.payeeList.forEach(function(val, idx, arr) {
+                      payeeData.payeeList.forEach(function(val, idx, arr) {
                           val = addHATEOS(val, req.headers.host);
                       });
-                      res.status(200).json(catData);
+                      res.status(200).json(payeeData);
                     }
                   });
                 }
@@ -115,9 +115,9 @@ const routes = function(moneyApiVars) {
     }
 
 
-    function addHATEOS(catRecord, hostAddress) {
-      catRecord.links.self = HATEOASProtocol + hostAddress + HATEOASJunction + catRecord.id;
-      return catRecord;
+    function addHATEOS(payeeRecord, hostAddress) {
+      payeeRecord.links.self = HATEOASProtocol + hostAddress + HATEOASJunction + payeeRecord.id;
+      return payeeRecord;
     }
 
     return payeeRouter;

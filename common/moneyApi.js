@@ -62,11 +62,13 @@ const MoneyApi = function() {
             let acctRouter = require('../routers/acctRoutes')(self.variables);
             let catRouter  = require('../routers/categoryRoutes')(self.variables);
             let payeeRouter  = require('../routers/payeeRoutes')(self.variables);
+            let transRouter  = require('../routers/transRoutes')(self.variables);
             self.app.use('/', rootRouter);
             self.app.use('/user', userRouter);
             self.app.use('/account', acctRouter);
             self.app.use('/category', catRouter);
             self.app.use('/payee', payeeRouter);
+            self.app.use('/transaction', transRouter);
 
         //default error handler - throw 404
             self.app.use(function(req, res, next) {
