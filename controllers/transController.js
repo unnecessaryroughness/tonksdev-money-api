@@ -11,15 +11,19 @@ const controller = function(moneyApiVars) {
           if (err || !foundTrans) {
               done(constructErrReturnObj(err, 'could not find transaction', 404), null);
           } else {
-              done(null, {'payee': constructTransObjectForRead(foundTrans)});
+              done(null, {'transaction': constructTransObjectForRead(foundTrans)});
           }
       })
   }
 
 
   const createTransaction = function(reqBody, done) {
-    let txn = reqBody.transaction;
-    if (txn.account.id && txn.account.group.id && (txn.payee.id || txn.payee.transferAccount.id) && txn.category.id && txn.amount) {
+    let txn = reqBody.transaction || {};
+    if ((txn.account  && txn.account.id && txn.account.group.id) &&
+        (txn.payee    && (txn.payee.id || txn.payee.transferAccount.id)) &&
+        (txn.category && txn.category.id) &&
+        (txn.amount)) {
+
       let newTrans = constructTransObjectForSave(reqBody.transaction);
       newTrans.save(function(err, savedTrans) {
           if (err || !savedTrans) {
@@ -29,7 +33,7 @@ const controller = function(moneyApiVars) {
           }
       });
     } else {
-      done(constructErrReturnObj(null, 'mandatory fields were not supplied', 500), {'saveStatus': 'failed'});
+      done(constructErrReturnObj(null, 'mandatory fields were not supplied', 500), {'saveStatus': 'failed create'});
     }
   }
 
@@ -72,17 +76,15 @@ const controller = function(moneyApiVars) {
   //   }
   // }
 
-  // const findAllPayees = function(acctGroup, done) {
-  //     payee.find({'accountGroup': acctGroup}, function(err, foundPayees) {
-  //       if (err || !foundPayees) {
-  //           done(constructErrReturnObj(err, 'could not find any payees', 404), null);
-  //       } else {
-  //           done(null, {'payeeList': constructPayeeList(foundPayees)});
-  //       }
-  //     })
-  // }
-
-
+  const findAllRecentTransactions = function(acctId, numRecs, done) {
+      transaction.find({'account.id': acctId}).limit(parseInt(numRecs)).sort({transactionDate: -1, createdDate: -1}).exec(function(err, foundTrans) {
+        if (err || !foundTrans) {
+            done(constructErrReturnObj(err, 'could not find any transactions', 404), null);
+        } else {
+            done(null, {'transactionList': constructTransList(foundTrans)});
+        }
+      })
+  }
 
 
   const constructTransObjectForRead = function(transFromDB) {
@@ -93,6 +95,7 @@ const controller = function(moneyApiVars) {
           rtnTrans.payee          = transFromDB.payee;
           rtnTrans.category       = transFromDB.category;
           rtnTrans.amount         = transFromDB.amount;
+          rtnTrans.transactionDate = transFromDB.transactionDate;
           rtnTrans.createdDate    = transFromDB.createdDate;
           rtnTrans.notes          = transFromDB.notes;
           rtnTrans.isCleared      = transFromDB.isCleared;
@@ -103,16 +106,15 @@ const controller = function(moneyApiVars) {
       return rtnTrans;
   }
 
-
-  // const constructPayeeList = function(payeeListFromDB) {
-  //     let rtnPayeeList = [];
-  //     if (payeeListFromDB && payeeListFromDB.length > 0) {
-  //         payeeListFromDB.forEach(function(val, idx, arr) {
-  //             rtnPayeeList.push(constructPayeeObjectForRead(val));
-  //         })
-  //     }
-  //     return rtnPayeeList;
-  // }
+  const constructTransList = function(transListFromDB) {
+      let rtnTransList = [];
+      if (transListFromDB && transListFromDB.length > 0) {
+          transListFromDB.forEach(function(val, idx, arr) {
+              rtnTransList.push(constructTransObjectForRead(val));
+          })
+      }
+      return rtnTransList;
+  }
 
   const constructTransObjectForSave = function(transFromApp) {
       let newTrans = new transaction;
@@ -121,7 +123,7 @@ const controller = function(moneyApiVars) {
           newTrans.payee         = transFromApp.payee;
           newTrans.category      = transFromApp.category;
           newTrans.amount        = transFromApp.amount;
-          newTrans.createdDate   = transFromApp.createdDate;
+          newTrans.transactionDate = transFromApp.transactionDate;
           newTrans.notes         = transFromApp.notes;
           newTrans.isCleared     = transFromApp.isCleared;
           newTrans.isPlaceholder = transFromApp.isPlaceholder;
@@ -142,7 +144,8 @@ const controller = function(moneyApiVars) {
   return {
     findTransaction: findTransaction,
     // updatePayee: updatePayee,
-    createTransaction: createTransaction
+    createTransaction: createTransaction,
+    findAllRecentTransactions: findAllRecentTransactions
     // deletePayee: deletePayee,
     // findAllPayees: findAllPayees
   }

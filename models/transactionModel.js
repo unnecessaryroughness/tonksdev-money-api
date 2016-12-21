@@ -61,6 +61,10 @@ const TransactionSchema = Schema({
       type: Number,
       required: true
     },
+    transactionDate: {
+      type: Date,
+      required: true
+    },
     createdDate: {
       type: Date,
       default: Date.now,

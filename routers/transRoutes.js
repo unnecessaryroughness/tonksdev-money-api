@@ -14,7 +14,7 @@ const routes = function(moneyApiVars) {
     transRouter.route('/')
         .get(function(req, res, next) {
             res.status(200).json({'availableFunctions': [
-                  {'getRecentTrans': HATEOASProtocol + req.headers.host + HATEOASJunction + 'recent/[account-id]/[number-of-records-requested]'},
+                  {'getRecentTrans': HATEOASProtocol + req.headers.host + HATEOASJunction + 'recent/[number-of-records-requested]/[account-id]'},
                   {'getTransById': HATEOASProtocol + req.headers.host + HATEOASJunction + '[trans-id]'},
                   {'createTransaction [POST]': HATEOASProtocol + req.headers.host + HATEOASJunction + '/[account-id]'}
             ]})
@@ -32,7 +32,7 @@ const routes = function(moneyApiVars) {
                   } else {
                     //found accountgroup and the user is authorised to add new records to it
                     transController.createTransaction(req.body, function(err, newTrans) {
-                      newTrans.trans = addHATEOS(newTrans.transaction, req.headers.host);
+                      newTrans.transaction = addHATEOS(newTrans.transaction, req.headers.host);
                       res.status(200).json(newTrans);
                     })
                   }
@@ -42,42 +42,42 @@ const routes = function(moneyApiVars) {
         })
 
 
-    // transRouter.route('/alltranss/:gid')
-    //     .get(function(req, res, next) {
-    //         if (req.headers.userid) {
-    //           //check that the current user is in the requested account group
-    //           accountController.findAccountGroup(req.headers.userid, req.params.gid, null, function(err, groupData) {
-    //             if (err || !groupData) {
-    //               res.status(err.number || 403).json({"error": "access denied", "errDetails": err})
-    //             } else {
-    //               //get all transs from that account group
-    //               transController.findAllTranss(req.params.gid, function(err, transData) {
-    //                 if (err || !transData) {
-    //                   res.status(err.number || 404).json({"error": "could not find any transs", "errDetails" : err});
-    //                 } else {
-    //                   transData.transList.forEach(function(val, idx, arr) {
-    //                       val = addHATEOS(val, req.headers.host);
-    //                   });
-    //                   res.status(200).json(transData);
-    //                 }
-    //               });
-    //             }
-    //           });
-    //         }
-    //   });
-    //
-    //
-    // transRouter.route('/:tid')
-    //   .get(function(req, res, next) {
-    //       findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
-    //         if (err || !transData) {
-    //           res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
-    //         } else {
-    //           transData.trans = addHATEOS(transData.trans, req.headers.host);
-    //           res.status(200).json(transData);
-    //         }
-    //       })
-    //     })
+    transRouter.route('/recent/:recs/:acctid')
+        .get(function(req, res, next) {
+            if (req.headers.userid) {
+              //check that the current user is in the requested account group
+              accountController.findAccount(req.headers.userid, req.params.acctid, function(err, acctData) {
+                if (err || !acctData) {
+                  res.status(err.number || 403).json({"error": "access denied", "errDetails": err})
+                } else {
+                  //get all trans from that account group
+                  transController.findAllRecentTransactions(req.params.acctid, req.params.recs, function(err, transData) {
+                    if (err || !transData) {
+                      res.status(err.number || 404).json({"error": "could not find any transactions", "errDetails" : err});
+                    } else {
+                      transData.transactionList.forEach(function(val, idx, arr) {
+                          val = addHATEOS(val, req.headers.host);
+                      });
+                      res.status(200).json(transData);
+                    }
+                  });
+                }
+              });
+            }
+      });
+
+
+    transRouter.route('/:tid')
+      .get(function(req, res, next) {
+          findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
+            if (err || !transData) {
+              res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
+            } else {
+              transData.transaction = addHATEOS(transData.transaction, req.headers.host);
+              res.status(200).json(transData);
+            }
+          })
+        })
     //   .put(function(req, res, next) {
     //     findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
     //       if (err || !transData) {
@@ -105,23 +105,23 @@ const routes = function(moneyApiVars) {
     //   });
     //
     //
-    // function findAndValidateTrans(uid, tid, done) {
-    //   //check the trans exists
-    //   transController.findTrans(tid, function(err, transData) {
-    //       if (err || !transData) {
-    //         done({"error": "trans was not found", "transid": tid, "errDetails" : err}, null);
-    //       } else {
-    //         //check that the user is in the account group for the trans
-    //         accountController.findAccountGroup(uid, transData.trans.accountGroup, null, function(err, groupData) {
-    //           if (err || !groupData) {
-    //             done({"error": "access denied", "errDetails" : err}, null);
-    //           } else {
-    //             done(null, transData);
-    //           }
-    //         })
-    //       }
-    //   })
-    // }
+    function findAndValidateTrans(uid, tid, done) {
+      //check the trans exists
+      transController.findTransaction(tid, function(err, transData) {
+          if (err || !transData) {
+            done({"error": "transaction was not found", "transid": tid, "errDetails" : err}, null);
+          } else {
+            //check that the user is in the account group for the trans
+            accountController.findAccountGroup(uid, transData.transaction.account.group.id, null, function(err, groupData) {
+              if (err || !groupData) {
+                done({"error": "access denied", "errDetails" : err}, null);
+              } else {
+                done(null, transData);
+              }
+            })
+          }
+      })
+    }
 
 
     function addHATEOS(transRecord, hostAddress) {
