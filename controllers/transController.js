@@ -38,24 +38,26 @@ const controller = function(moneyApiVars) {
   }
 
 
-  // const updatePayee = function(pid, reqBody, done) {
-  //   if (pid && reqBody) {
-  //     payee.findById(pid, function(err, foundPayee) {
-  //       if (err || !foundPayee) {
-  //         done(constructErrReturnObj(err, 'payee could not be found in the database', 404), {'saveStatus': 'failed update'});
-  //       } else {
-  //         let updatedPayee = constructPayeeObjectForUpdate(foundPayee, reqBody.payee);
-  //         updatedPayee.save(function(err, savedPayee) {
-  //             if (err) {
-  //               done(constructErrReturnObj(err, 'payee record could not be updated in the database', 400), {'saveStatus': 'failed update'});
-  //             } else {
-  //               done(null, {'saveStatus': 'updated', 'payee': constructPayeeObjectForRead(savedPayee)});
-  //             }
-  //         })
-  //       }
-  //     });
-  //   }
-  // }
+  const updateTransaction = function(tid, reqBody, done) {
+    if (tid && reqBody) {
+      transaction.findById(tid, function(err, foundTrans) {
+        if (err || !foundTrans) {
+          done(constructErrReturnObj(err, 'transaction could not be found in the database', 404), {'saveStatus': 'failed update'});
+        } else {
+          let updatedTrans = constructTransObjectForUpdate(foundTrans, reqBody.transaction);
+          updatedTrans.save(function(err, savedTrans) {
+              if (err) {
+                done(constructErrReturnObj(err, 'transaction record could not be updated in the database', 400), {'saveStatus': 'failed update'});
+              } else {
+                done(null, {'saveStatus': 'updated', 'transaction': constructTransObjectForRead(savedTrans)});
+              }
+          })
+        }
+      });
+    } else {
+      done(constructErrReturnObj(null, 'mandatory fields were not supplied', 500), {'saveStatus': 'failed update'});      
+    }
+  }
 
 
   // const deletePayee = function(pid, done) {
@@ -132,18 +134,25 @@ const controller = function(moneyApiVars) {
       return newTrans;
   }
 
-  // const constructPayeeObjectForUpdate = function(payeeObject, payeeFromApp) {
-  //     if (payeeFromApp) {
-  //         if (payeeFromApp.payeeName) payeeObject.payeeName = payeeFromApp.payeeName;
-  //         if (payeeFromApp.accountGroup) payeeObject.accountGroup = payeeFromApp.accountGroup;
-  //     }
-  //     return payeeObject;
-  // }
+  const constructTransObjectForUpdate = function(transObject, transFromApp) {
+      if (transFromApp) {
+          if (transFromApp.account)         transObject.account         = transFromApp.account;
+          if (transFromApp.payee)           transObject.payee           = transFromApp.payee;
+          if (transFromApp.category)        transObject.category        = transFromApp.category;
+          if (transFromApp.amount)          transObject.amount          = transFromApp.amount;
+          if (transFromApp.transactionDate) transObject.transactionDate = transFromApp.transactionDate;
+          if (transFromApp.notes)           transObject.notes           = transFromApp.notes;
+          if (transFromApp.isCleared)       transObject.isCleared       = transFromApp.isCleared;
+          if (transFromApp.isPlaceholder)   transObject.isPlaceholder   = transFromApp.isPlaceholder;
+          if (transFromApp.repeating)       transObject.repeating       = transFromApp.repeating;
+      }
+      return transObject;
+  }
 
 
   return {
     findTransaction: findTransaction,
-    // updatePayee: updatePayee,
+    updateTransaction: updateTransaction,
     createTransaction: createTransaction,
     findAllRecentTransactions: findAllRecentTransactions
     // deletePayee: deletePayee,

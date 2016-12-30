@@ -20,26 +20,30 @@ const routes = function(moneyApiVars) {
             ]})
         })
 
-    transRouter.route('/:accid')
+    transRouter.route('/')
         .post(function(req, res, next) {
-          accountController.findAccount(req.headers.userid, req.params.accid, function(err, accountData) {
-              if (err || !accountData) {
-                res.status(err.number || 404).json({"error": "account not found", "errDetails" : err});
-              } else {
-                accountController.findAccountGroup(req.headers.userid, accountData.account.accountGroup, null, function(err, groupData) {
-                  if (err || !groupData) {
-                    res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
-                  } else {
-                    //found accountgroup and the user is authorised to add new records to it
-                    transController.createTransaction(req.body, function(err, newTrans) {
-                      newTrans.transaction = addHATEOS(newTrans.transaction, req.headers.host);
-                      res.status(200).json(newTrans);
+          if (req.body && req.body.transaction && req.body.transaction.account && req.body.transaction.account.id) {
+                  accountController.findAccount(req.headers.userid, req.body.transaction.account.id, function(err, accountData) {
+                      if (err || !accountData) {
+                        res.status(err.number || 404).json({"error": "account not found", "errDetails" : err});
+                      } else {
+                        accountController.findAccountGroup(req.headers.userid, accountData.account.accountGroup, null, function(err, groupData) {
+                          if (err || !groupData) {
+                            res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
+                          } else {
+                            //found accountgroup and the user is authorised to add new records to it
+                            transController.createTransaction(req.body, function(err, newTrans) {
+                              newTrans.transaction = addHATEOS(newTrans.transaction, req.headers.host);
+                              res.status(200).json(newTrans);
+                            })
+                          }
+                        })
+                      }
                     })
-                  }
-                })
-              }
+            } else {
+              res.status(500).json({"error": "no account id specified", "errDetails" : {}});
+            }
           })
-        })
 
 
     transRouter.route('/recent/:recs/:acctid')
@@ -78,19 +82,19 @@ const routes = function(moneyApiVars) {
             }
           })
         })
-    //   .put(function(req, res, next) {
-    //     findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
-    //       if (err || !transData) {
-    //         res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
-    //       } else {
-    //         //found trans, so user has the authority to update it
-    //         transController.updateTrans(req.params.tid, req.body, function(err, updatedTrans) {
-    //           updatedTrans.trans = addHATEOS(updatedTrans.trans, req.headers.host);
-    //           res.status(200).json(updatedTrans);
-    //         })
-    //       }
-    //     })
-    //   })
+      .put(function(req, res, next) {
+        findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
+          if (err || !transData) {
+            res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
+          } else {
+            //found trans, so user has the authority to update it
+            transController.updateTransaction(req.params.tid, req.body, function(err, updatedTrans) {
+              updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
+              res.status(200).json(updatedTrans);
+            })
+          }
+        })
+      })
     //   .delete(function(req, res, next) {
     //     findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
     //       if (err || !transData) {

@@ -159,54 +159,81 @@ describe('"Transaction" functional testing', function() {
 
 
     //UPDATE-CATEGORY
-        // it('should return valid JSON data from the updatePayee function', function(done) {
-        //   let updateBody = {"payee": {"payeeName": "Caffe Nero", "accountGroup": "57a8c444eb388272368806b3"}};
-        //   let foundPayee = new payee;
-        //   foundPayee._id = '5845c83f45aa390726439108';
-        //   foundPayee.payeeName = 'Starbucks';
-        //   foundPayee.accountGroup = '57a8c444eb388272368806b3';
-        //   stubFindById.yields(null, foundPayee);
-        //   stubSave.yields(null, {"_id":"5845c83f45aa390726439108","payeeName":"Caffe Nero","accountGroup":"57a8c444eb388272368806b3"})
-        //
-        //   tstCtrl.updatePayee('5845c83f45aa390726439108', updateBody, function(err, data) {
-        //     // console.log(err, data);
-        //     expect(err, 'error was returned').to.be.null;
-        //     expect(data, 'no data was returned').to.not.be.null;
-        //     data.saveStatus.should.equal('updated');
-        //     expect(data.payee.id, 'no ID for the created payee').to.exist;
-        //     expect(data.payee.payeeName, 'no payeeName for the created payee').to.exist;
-        //     expect(data.payee.accountGroup, 'no accountGroup for the created payee').to.exist;
-        //     done();
-        //   });
-        // });
-        // it('should return valid JSON error data from the updatePayee function if the payee to update was not found', function(done) {
-        //   let updateBody = {"payee": {"payeeName": "Caffe Nero", "accountGroup": "57a8c444eb388272368806b3"}};
-        //   stubFindById.yields(null, null);
-        //   tstCtrl.updatePayee('5845c83f45aa390726439108', updateBody, function(err, data) {
-        //       // console.log(err, data);
-        //       expect(err, 'no error was returned').to.not.be.null;
-        //       expect(data, 'some data was returned').to.not.be.null;
-        //       data.saveStatus.should.equal('failed update');
-        //       done();
-        //     })
-        // })
-        // it('should return valid JSON error data from the updatePayee function if the payee was found but the update failed', function(done) {
-        //   let updateBody = {"payee": {"payeeName": "Caffe Nero", "accountGroup": "57a8c444eb388272368806b3"}};
-        //   let foundPayee = new payee;
-        //   foundPayee._id = '5845c83f45aa390726439108';
-        //   foundPayee.payeeName = 'Starbucks';
-        //   foundPayee.accountGroup = '57a8c444eb388272368806b3';
-        //   stubFindById.yields(null, foundPayee);
-        //   stubSave.yields({'error': 'Error saving record to the database'}, null);
-        //
-        //   tstCtrl.updatePayee('5845c83f45aa390726439108', updateBody, function(err, data) {
-        //       // console.log(err, data);
-        //       expect(err, 'no error was returned').to.not.be.null;
-        //       expect(data, 'some data was returned').to.not.be.null;
-        //       data.saveStatus.should.equal('failed update');
-        //       done();
-        //     })
-        // })
+      it('should return valid JSON data from the updateTransaction function', function(done) {
+        let updateBody = {"transaction":{"_id":"5845c83f45aa390726439108", "account":{"group":{"id":"57a8c444eb388272368806b3","code":"FAMILY"},"id":"579a5a314a4eff2f21d5a109","code":"FDMARK"},"payee":{"name":"Tesco","id":"584f0408884e2dde51ce5f74"},"category":{"name":"Food: Groceries","id":"582719a9ccf666abafab3394"},"amount":9999.99,"transactionDate": "2016-12-21T19:58:15.215Z","notes":"Second transaction","isCleared":false,"isPlaceholder":false,"repeating":{"frequency":{"increment":0,"code":""},"endOnDate":null,"prevDate":null,"nextDate":null}}};
+        let foundTrans = new transaction;
+        foundTrans._id = '5845c83f45aa390726439108';
+        foundTrans.account = {"account":{"group":{"id":"57a8c444eb388272368806b3","code":"FAMILY"},"id":"579a5a314a4eff2f21d5a109","code":"FDMARK"}};
+        foundTrans.payee = {"name":"Tesco","id":"584f0408884e2dde51ce5f74"};
+        foundTrans.amount = 100.00;
+        foundTrans.category = {"name":"Food: Groceries","id":"582719a9ccf666abafab3394"};
+        foundTrans.isCleared = false;
+        foundTrans.isPlaceholder = false;
+        foundTrans.notes = "";
+        foundTrans.repeating = {"frequency":{"increment":0,"code":""},"endOnDate":null,"prevDate":null,"nextDate":null};
+        stubFindById.yields(null, foundTrans);
+        stubSave.yields(null, {"_id":"5845c83f45aa390726439108", "account":{"group":{"id":"57a8c444eb388272368806b3","code":"FAMILY"},"id":"579a5a314a4eff2f21d5a109","code":"FDMARK"},"payee":{"name":"Tesco","id":"584f0408884e2dde51ce5f74"},"category":{"name":"Food: Groceries","id":"582719a9ccf666abafab3394"},"amount":9999.99,"transactionDate": "2016-12-21T19:58:15.215Z","notes":"Second transaction","isCleared":false,"isPlaceholder":false,"repeating":{"frequency":{"increment":0,"code":""},"endOnDate":null,"prevDate":null,"nextDate":null}});
+
+        tstCtrl.updateTransaction("5845c83f45aa390726439108", updateBody, function(err, data) {
+            // console.log(err, data);
+            expect(err, 'error was returned').to.be.null;
+            expect(data, 'no data was returned').to.not.be.null;
+            data.saveStatus.should.equal('updated');
+            expect(data.transaction.id, 'no ID for the created transaction').to.exist;
+            expect(data.transaction.account, 'no account for the created transaction').to.exist;
+            expect(data.transaction.payee, 'no payee for the created transaction').to.exist;
+            expect(data.transaction.amount, 'no amount for the created transaction').to.exist;
+            expect(data.transaction.category, 'no category for the created transaction').to.exist;
+            expect(data.transaction.isCleared, 'no isCleared for the created transaction').to.exist;
+            expect(data.transaction.isPlaceholder, 'no isPlaceholder for the created transaction').to.exist;
+            expect(data.transaction.notes, 'no notes for the created transaction').to.exist;
+            expect(data.transaction.repeating, 'no repeating for the created transaction').to.exist;
+            done();
+        })
+      });
+      it('should return valid JSON error data from the updateTransaction function if the transaction to update was not found', function(done) {
+        let updateBody = {"transaction":{"_id":"5845c83f45aa390726439108", "account":{"group":{"id":"57a8c444eb388272368806b3","code":"FAMILY"},"id":"579a5a314a4eff2f21d5a109","code":"FDMARK"},"payee":{"name":"Tesco","id":"584f0408884e2dde51ce5f74"},"category":{"name":"Food: Groceries","id":"582719a9ccf666abafab3394"},"amount":9999.99,"transactionDate": "2016-12-21T19:58:15.215Z","notes":"Second transaction","isCleared":false,"isPlaceholder":false,"repeating":{"frequency":{"increment":0,"code":""},"endOnDate":null,"prevDate":null,"nextDate":null}}};
+        stubFindById.yields(null, null);
+        tstCtrl.updateTransaction('5845c83f45aa390726439108', updateBody, function(err, data) {
+            // console.log(err, data);
+            expect(err, 'no error was returned').to.not.be.null;
+            expect(data, 'some data was returned').to.not.be.null;
+            data.saveStatus.should.equal('failed update');
+            done();
+          })
+      })
+      it('should return valid JSON error data from the updateTransaction function if there was a problem saving', function(done) {
+          let updateBody = {"transaction":{"_id":"5845c83f45aa390726439108", "account":{"group":{"id":"57a8c444eb388272368806b3","code":"FAMILY"},"id":"579a5a314a4eff2f21d5a109","code":"FDMARK"},"payee":{"name":"Tesco","id":"584f0408884e2dde51ce5f74"},"category":{"name":"Food: Groceries","id":"582719a9ccf666abafab3394"},"amount":9999.99,"transactionDate": "2016-12-21T19:58:15.215Z","notes":"Second transaction","isCleared":false,"isPlaceholder":false,"repeating":{"frequency":{"increment":0,"code":""},"endOnDate":null,"prevDate":null,"nextDate":null}}};
+          let foundTrans = new transaction;
+          foundTrans._id = '5845c83f45aa390726439108';
+          foundTrans.account = {"account":{"group":{"id":"57a8c444eb388272368806b3","code":"FAMILY"},"id":"579a5a314a4eff2f21d5a109","code":"FDMARK"}};
+          foundTrans.payee = {"name":"Tesco","id":"584f0408884e2dde51ce5f74"};
+          foundTrans.amount = 100.00;
+          foundTrans.category = {"name":"Food: Groceries","id":"582719a9ccf666abafab3394"};
+          foundTrans.isCleared = false;
+          foundTrans.isPlaceholder = false;
+          foundTrans.notes = "";
+          foundTrans.repeating = {"frequency":{"increment":0,"code":""},"endOnDate":null,"prevDate":null,"nextDate":null};
+          stubFindById.yields(null, foundTrans);
+          stubSave.yields({errCode: 1234, errDesc: 'made up error'}, null);
+          tstCtrl.updateTransaction('5845c83f45aa390726439108', updateBody, function(err, data) {
+              // console.log(err, data);
+              expect(err, 'no error was returned').to.not.be.null;
+              expect(data, 'some data was returned').to.not.be.null;
+              data.saveStatus.should.equal('failed update');
+              done();
+          })
+      })
+      it('should return valid JSON error data from the updateTransaction function if no transaction id is supplied', function(done) {
+          let updateBody = {"transaction":{"account":{"group":{"id":"57a8c444eb388272368806b3","code":"FAMILY"},"id":"579a5a314a4eff2f21d5a109","code":"FDMARK"},"payee":{"name":"Tesco","id":"584f0408884e2dde51ce5f74"},"category":{"name":"Food: Groceries","id":"582719a9ccf666abafab3394"},"amount":9999.99,"transactionDate": "2016-12-21T19:58:15.215Z","notes":"Second transaction","isCleared":false,"isPlaceholder":false,"repeating":{"frequency":{"increment":0,"code":""},"endOnDate":null,"prevDate":null,"nextDate":null}}};
+          tstCtrl.updateTransaction(null, updateBody, function(err, data) {
+              // console.log(err, data);
+              expect(err, 'no error was returned').to.not.be.null;
+              expect(data, 'some data was returned').to.not.be.null;
+              data.saveStatus.should.equal('failed update');
+              done();
+          })
+      })
 
 
     //DELETE-CATEGORY
