@@ -55,28 +55,28 @@ const controller = function(moneyApiVars) {
         }
       });
     } else {
-      done(constructErrReturnObj(null, 'mandatory fields were not supplied', 500), {'saveStatus': 'failed update'});      
+      done(constructErrReturnObj(null, 'mandatory fields were not supplied', 500), {'saveStatus': 'failed update'});
     }
   }
 
 
-  // const deletePayee = function(pid, done) {
-  //   if (pid) {
-  //     payee.findById(pid, function(err, foundPayee) {
-  //       if (err || !foundPayee) {
-  //         done(constructErrReturnObj(err, 'payee could not be found in the database', 404), {'saveStatus': 'failed delete'});
-  //       } else {
-  //         foundPayee.remove(function(err) {
-  //           if (err) {
-  //             done(constructErrReturnObj(err, 'error removing payee from database', 500), {'saveStatus': 'failed delete'});
-  //           } else {
-  //             done(null, {'saveStatus': 'deleted'});
-  //           }
-  //         })
-  //       }
-  //     });
-  //   }
-  // }
+  const deleteTransaction = function(tid, done) {
+    if (tid) {
+      transaction.findById(tid, function(err, foundTrans) {
+        if (err || !foundTrans) {
+          done(constructErrReturnObj(err, 'transaction could not be found in the database', 404), {'saveStatus': 'failed delete'});
+        } else {
+          foundTrans.remove(function(err) {
+            if (err) {
+              done(constructErrReturnObj(err, 'error removing transaction from database', 500), {'saveStatus': 'failed delete'});
+            } else {
+              done(null, {'saveStatus': 'deleted'});
+            }
+          })
+        }
+      });
+    }
+  }
 
   const findAllRecentTransactions = function(acctId, numRecs, done) {
       transaction.find({'account.id': acctId}).limit(parseInt(numRecs)).sort({transactionDate: -1, createdDate: -1}).exec(function(err, foundTrans) {
@@ -143,7 +143,9 @@ const controller = function(moneyApiVars) {
           if (transFromApp.transactionDate) transObject.transactionDate = transFromApp.transactionDate;
           if (transFromApp.notes)           transObject.notes           = transFromApp.notes;
           if (transFromApp.isCleared)       transObject.isCleared       = transFromApp.isCleared;
+          if (!transFromApp.isCleared)      transObject.isCleared       = false;
           if (transFromApp.isPlaceholder)   transObject.isPlaceholder   = transFromApp.isPlaceholder;
+          if (!transFromApp.isPlaceholder)   transObject.isPlaceholder   = false;
           if (transFromApp.repeating)       transObject.repeating       = transFromApp.repeating;
       }
       return transObject;
@@ -154,8 +156,8 @@ const controller = function(moneyApiVars) {
     findTransaction: findTransaction,
     updateTransaction: updateTransaction,
     createTransaction: createTransaction,
-    findAllRecentTransactions: findAllRecentTransactions
-    // deletePayee: deletePayee,
+    findAllRecentTransactions: findAllRecentTransactions,
+    deleteTransaction: deleteTransaction
     // findAllPayees: findAllPayees
   }
 }

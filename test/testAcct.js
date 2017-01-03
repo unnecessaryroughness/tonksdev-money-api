@@ -614,7 +614,7 @@ describe('"Account" CRUD functional testing', function() {
                                 "members": ["5770067d85e95a5378fb948e"], "password": "test"}}
 
             tstCtrl.createAccountGroup(createBody, function(err, data) {
-                //console.log(err, data);
+                // console.log(err, data);
                 expect(err, 'error was returned').to.be.null;
                 expect(data, 'no data was returned').to.not.be.null;
                 data.saveStatus.should.equal('created');

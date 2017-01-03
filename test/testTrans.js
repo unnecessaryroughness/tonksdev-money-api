@@ -237,47 +237,58 @@ describe('"Transaction" functional testing', function() {
 
 
     //DELETE-CATEGORY
-        // it('should return valid JSON data from the deletePayee function', function(done) {
-        //   let foundPayee = new payee;
-        //   foundPayee._id = '5845c83f45aa390726439108';
-        //   foundPayee.payeeName = 'Starbucks';
-        //   foundPayee.accountGroup = '57a8c444eb388272368806b3';
-        //   stubFindById.yields(null, foundPayee);
-        //   stubRemove.yields(null, null);
-        //
-        //   tstCtrl.deletePayee('5845c83f45aa390726439108', function(err, data) {
-        //       // console.log(err, data);
-        //       expect(err, 'error was returned').to.be.null;
-        //       expect(data, 'no data was returned').to.not.be.null;
-        //       data.saveStatus.should.equal('deleted');
-        //       done();
-        //   })
-        // })
-        // it('should return valid JSON error data from the deletePayee function if the payee to delete was not found', function(done) {
-        //   stubFindById.yields(null, null);
-        //   tstCtrl.deletePayee('5845c83f45aa390726439108', function(err, data) {
-        //       // console.log(err, data);
-        //       expect(err, 'no error was returned').to.not.be.null;
-        //       expect(data, 'some data was returned').to.not.be.null;
-        //       data.saveStatus.should.equal('failed delete');
-        //       done();
-        //     })
-        // })
-        // it('should return valid JSON error data from the deletePayee function if the payee was found but the delete operation failed', function(done) {
-        //   let foundPayee = new payee;
-        //   foundPayee._id = '5845c83f45aa390726439108';
-        //   foundPayee.payeeName = 'Starbucks';
-        //   foundPayee.accountGroup = '57a8c444eb388272368806b3';
-        //   stubFindById.yields(null, foundPayee);
-        //   stubRemove.yields({'error': 'Error removing record from the database'}, null);
-        //   tstCtrl.deletePayee('5845c83f45aa390726439108', function(err, data) {
-        //       // console.log(err, data);
-        //       expect(err, 'no error was returned').to.not.be.null;
-        //       expect(data, 'some data was returned').to.not.be.null;
-        //       data.saveStatus.should.equal('failed delete');
-        //       done();
-        //     })
-        // })
+        it('should return valid JSON data from the deleteTransaction function', function(done) {
+          let foundTrans = new transaction;
+          foundTrans._id = '5845c83f45aa390726439108';
+          foundTrans.account = {"account":{"group":{"id":"57a8c444eb388272368806b3","code":"FAMILY"},"id":"579a5a314a4eff2f21d5a109","code":"FDMARK"}};
+          foundTrans.payee = {"name":"Tesco","id":"584f0408884e2dde51ce5f74"};
+          foundTrans.amount = 100.00;
+          foundTrans.category = {"name":"Food: Groceries","id":"582719a9ccf666abafab3394"};
+          foundTrans.isCleared = false;
+          foundTrans.isPlaceholder = false;
+          foundTrans.notes = "";
+          foundTrans.repeating = {"frequency":{"increment":0,"code":""},"endOnDate":null,"prevDate":null,"nextDate":null};
+          stubFindById.yields(null, foundTrans);
+          stubRemove.yields(null, null);
+          tstCtrl.deleteTransaction('5845c83f45aa390726439108', function(err, data) {
+              // console.log(err, data);
+              expect(err, 'error was returned').to.be.null;
+              expect(data, 'no data was returned').to.not.be.null;
+              data.saveStatus.should.equal('deleted');
+              done();
+          })
+        })
+        it('should return valid JSON error data from the deleteTransaction function if the transaction to delete was not found', function(done) {
+          stubFindById.yields(null, null);
+          tstCtrl.deleteTransaction('5845c83f45aa390726439108', function(err, data) {
+              // console.log(err, data);
+              expect(err, 'no error was returned').to.not.be.null;
+              expect(data, 'some data was returned').to.not.be.null;
+              data.saveStatus.should.equal('failed delete');
+              done();
+            })
+        })
+        it('should return valid JSON error data from the deleteTransaction function if the transaction was found but the delete operation failed', function(done) {
+          let foundTrans = new transaction;
+          foundTrans._id = '5845c83f45aa390726439108';
+          foundTrans.account = {"account":{"group":{"id":"57a8c444eb388272368806b3","code":"FAMILY"},"id":"579a5a314a4eff2f21d5a109","code":"FDMARK"}};
+          foundTrans.payee = {"name":"Tesco","id":"584f0408884e2dde51ce5f74"};
+          foundTrans.amount = 100.00;
+          foundTrans.category = {"name":"Food: Groceries","id":"582719a9ccf666abafab3394"};
+          foundTrans.isCleared = false;
+          foundTrans.isPlaceholder = false;
+          foundTrans.notes = "";
+          foundTrans.repeating = {"frequency":{"increment":0,"code":""},"endOnDate":null,"prevDate":null,"nextDate":null};
+          stubFindById.yields(null, foundTrans);
+          stubRemove.yields({'error': 'Error removing record from the database'}, null);
+          tstCtrl.deleteTransaction('5845c83f45aa390726439108', function(err, data) {
+              // console.log(err, data);
+              expect(err, 'error was returned').to.not.be.null;
+              expect(data, 'no data was returned').to.not.be.null;
+              data.saveStatus.should.equal('failed delete');
+              done();
+          })
+        })
 
 
     //RESET-STUBS

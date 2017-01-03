@@ -30,8 +30,8 @@ const AccountGroupSchema = Schema({
     },
     createdDate: {
         type: Date,
-        default: Date.now,
-        required: true
+        default: Date.now(),
+        required: false
     }
 });
 

@@ -71,6 +71,24 @@ const routes = function(moneyApiVars) {
       });
 
 
+    transRouter.route('/clear/:tid')
+      .put(function(req, res, next) {
+        findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
+          if (err || !transData) {
+            res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
+          } else {
+            //found trans, so user has the authority to update it
+            let currentClearedStatus = transData.transaction.isCleared;
+            let targetClearedStatus = !currentClearedStatus;
+            transController.updateTransaction(req.params.tid, {"transaction": {isCleared: targetClearedStatus, notes: 'updated'}}, function(err, updatedTrans) {
+              updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
+              res.status(200).json(updatedTrans);
+            })
+          }
+        })
+      })
+
+
     transRouter.route('/:tid')
       .get(function(req, res, next) {
           findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
@@ -95,20 +113,20 @@ const routes = function(moneyApiVars) {
           }
         })
       })
-    //   .delete(function(req, res, next) {
-    //     findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
-    //       if (err || !transData) {
-    //         res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
-    //       } else {
-    //         //found trans, so user has the authority to update it
-    //         transController.deleteTrans(req.params.tid, function(err, data) {
-    //           res.status(200).json(data);
-    //         })
-    //       }
-    //     })
-    //   });
-    //
-    //
+      .delete(function(req, res, next) {
+        findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
+          if (err || !transData) {
+            res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
+          } else {
+            //found trans, so user has the authority to update it
+            transController.deleteTransaction(req.params.tid, function(err, data) {
+              res.status(200).json(data);
+            })
+          }
+        })
+      });
+
+
     function findAndValidateTrans(uid, tid, done) {
       //check the trans exists
       transController.findTransaction(tid, function(err, transData) {
