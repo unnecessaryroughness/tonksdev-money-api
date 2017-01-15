@@ -34,7 +34,13 @@ const routes = function(moneyApiVars) {
                             //found accountgroup and the user is authorised to add new records to it
                             transController.createTransaction(req.body, function(err, newTrans) {
                               newTrans.transaction = addHATEOS(newTrans.transaction, req.headers.host);
-                              res.status(200).json(newTrans);
+                              resetAccountBalance(req.headers.userid, newTrans.transaction.account.id, newTrans.transaction.account.code, function(err, balData) {
+                                if (err || !balData) {
+                                  res.status(err.number || 500).json({"error": "error updating balance of account", "errDetails" : err});
+                                } else {
+                                  res.status(200).json(newTrans);
+                                }
+                              });
                             })
                           }
                         })
@@ -56,11 +62,13 @@ const routes = function(moneyApiVars) {
                 } else {
                   //get all trans from that account group
                   transController.findAllRecentTransactions(req.params.acctid, req.params.recs, function(err, transData) {
+                    console.log(transData)
                     if (err || !transData) {
                       res.status(err.number || 404).json({"error": "could not find any transactions", "errDetails" : err});
                     } else {
                       transData.transactionList.forEach(function(val, idx, arr) {
                           val = addHATEOS(val, req.headers.host);
+                          val.account.name = acctData.account.accountName;
                       });
                       res.status(200).json(transData);
                     }
@@ -108,7 +116,13 @@ const routes = function(moneyApiVars) {
             //found trans, so user has the authority to update it
             transController.updateTransaction(req.params.tid, req.body, function(err, updatedTrans) {
               updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
-              res.status(200).json(updatedTrans);
+              resetAccountBalance(req.headers.userid, updatedTrans.transaction.account.id, updatedTrans.transaction.account.code, function(err, balData) {
+                if (err || !balData) {
+                  res.status(err.number || 500).json({"error": "error updating balance of account", "errDetails" : err});
+                } else {
+                  res.status(200).json(updatedTrans);
+                }
+              })
             })
           }
         })
@@ -120,7 +134,13 @@ const routes = function(moneyApiVars) {
           } else {
             //found trans, so user has the authority to update it
             transController.deleteTransaction(req.params.tid, function(err, data) {
-              res.status(200).json(data);
+              resetAccountBalance(req.headers.userid, transData.transaction.account.id, transData.transaction.account.code, function(err, balData) {
+                if (err || !balData) {
+                  res.status(err.number || 500).json({"error": "error updating balance of account", "errDetails" : err});
+                } else {
+                  res.status(200).json(data);
+                }
+              })
             })
           }
         })
@@ -145,6 +165,21 @@ const routes = function(moneyApiVars) {
       })
     }
 
+    function resetAccountBalance(uid, acctid, acctcode, done) {
+      transController.calculateAccountBalance(acctcode, function(err, foundBalance) {
+        if (err || !foundBalance) {
+          done({"error": "could not calculate account balance", "accountcode": acctcode, "errDetails" : err}, null);
+        } else {
+          accountController.updateAccount(uid, acctid, {account: {balance: foundBalance.accountBalance}}, function(err, data) {
+            if (err || !data || !data.saveStatus || data.saveStatus !== 'updated') {
+              done(res.status(err.number || 500).json({"error": "error updating balance of account account", "acctid": acctid, "errDetails" : err}));
+            } else {
+              done(null, data);
+            }
+          })
+        }
+      })
+    }
 
     function addHATEOS(transRecord, hostAddress) {
       transRecord.links.self = HATEOASProtocol + hostAddress + HATEOASJunction + transRecord.id;

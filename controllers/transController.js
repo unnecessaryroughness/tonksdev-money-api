@@ -1,6 +1,8 @@
 const mongoose = require('mongoose'),
     debug = require('debug')('tonksDEV:money:api:controller:transaction'),
     constructErrReturnObj = require('../common/moneyErrorObj'),
+    dateFormat = require("dateformat"),
+    currencyFormat = require("currency-formatter"),
     transaction = require('../models/transactionModel');
 
 const controller = function(moneyApiVars) {
@@ -83,9 +85,29 @@ const controller = function(moneyApiVars) {
         if (err || !foundTrans) {
             done(constructErrReturnObj(err, 'could not find any transactions', 404), null);
         } else {
-            done(null, {'transactionList': constructTransList(foundTrans)});
+            calculateAccountBalance(foundTrans[0].account.code, function(err, foundBalance) {
+              if (err || !foundBalance) {
+                done(constructErrReturnObj(err, 'could not calculate account balance', 500), null);
+              } else {
+                done(null, {'transactionList': constructTransList(foundTrans, foundBalance.accountBalance), 'accountBalance': foundBalance.accountBalance});
+              }
+            })
         }
       })
+  }
+
+  const calculateAccountBalance = function(accountCode, done) {
+    transaction.aggregate([{$match: {"account.code": accountCode}}, { $group: {_id: null, totalBalance: {$sum: "$amount"}} }], function(err, foundBalance) {
+      if (err) {
+        done(constructErrReturnObj(err, 'could not get aggregate of account transactions', 500), null);
+      } else {
+        if (foundBalance.length > 0 && parseFloat(foundBalance[0].totalBalance) > 0) {
+          done(null, {'accountBalance': foundBalance[0].totalBalance.toFixed(2)});
+        } else {
+          done(null, {'accountBalance': parseFloat(0).toFixed(2)});
+        }
+      }
+    })
   }
 
 
@@ -96,27 +118,36 @@ const controller = function(moneyApiVars) {
           rtnTrans.account        = transFromDB.account;
           rtnTrans.payee          = transFromDB.payee;
           rtnTrans.category       = transFromDB.category;
-          rtnTrans.amount         = transFromDB.amount;
-          rtnTrans.transactionDate = transFromDB.transactionDate;
-          rtnTrans.createdDate    = transFromDB.createdDate;
+          rtnTrans.amount         = currencyFormat.format(transFromDB.amount, {code: "GBP"});
+          rtnTrans.transactionDate = dateFormat(transFromDB.transactionDate, "dd/mm/yyyy");
+          rtnTrans.createdDate    = dateFormat(transFromDB.createdDate, "dd/mm/yyyy");
           rtnTrans.notes          = transFromDB.notes;
           rtnTrans.isCleared      = transFromDB.isCleared;
           rtnTrans.isPlaceholder  = transFromDB.isPlaceholder;
+          rtnTrans.balance        = currencyFormat.format(0, {code: 'GBP'});
           rtnTrans.repeating      = transFromDB.repeating;
           rtnTrans.links = {};
       }
       return rtnTrans;
   }
 
-  const constructTransList = function(transListFromDB) {
+  const constructTransList = function(transListFromDB, totalBalance) {
       let rtnTransList = [];
       if (transListFromDB && transListFromDB.length > 0) {
           transListFromDB.forEach(function(val, idx, arr) {
               rtnTransList.push(constructTransObjectForRead(val));
           })
       }
+
+      //set balance in descending order
+      rtnTransList.forEach(function(val, idx, arr) {
+        val.balance = totalBalance;
+        totalBalance = (totalBalance - parseFloat(val.amount.substr(1)).toFixed(2)).toFixed(2);
+      });
+
       return rtnTransList;
   }
+
 
   const constructTransObjectForSave = function(transFromApp) {
       let newTrans = new transaction;
@@ -157,8 +188,8 @@ const controller = function(moneyApiVars) {
     updateTransaction: updateTransaction,
     createTransaction: createTransaction,
     findAllRecentTransactions: findAllRecentTransactions,
-    deleteTransaction: deleteTransaction
-    // findAllPayees: findAllPayees
+    deleteTransaction: deleteTransaction,
+    calculateAccountBalance: calculateAccountBalance
   }
 }
 

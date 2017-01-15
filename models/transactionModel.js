@@ -12,6 +12,10 @@ const TransactionSchema = Schema({
         required: true,
         ref: 'account'
       },
+      name: {
+        type: String,
+        required: false
+      },
       group: {
         code: {
           type: String,
@@ -83,6 +87,11 @@ const TransactionSchema = Schema({
       type: Boolean,
       default: false,
       required: false
+    },
+    balance: {
+      type: Number,
+      required: false,
+      default: 0
     },
     repeating: {
       nextDate: {

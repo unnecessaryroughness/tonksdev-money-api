@@ -12,7 +12,7 @@ chai.should();
 
 describe('"Transaction" functional testing', function() {
 
-  let tstCtrl, stubFind, stubFindById, stubFindOne, stubSave, stubRemove, stubUpdate, mockFind;
+  let tstCtrl, stubFind, stubFindById, stubFindOne, stubSave, stubRemove, stubUpdate, mockFind, stubAggregate;
 
   beforeEach(function() {
       tstCtrl = new ctrl({});
@@ -47,9 +47,11 @@ describe('"Transaction" functional testing', function() {
         stubSave     = sinon.stub(transaction.prototype, 'save');
         stubRemove   = sinon.stub(transaction.prototype, 'remove');
         stubUpdate   = sinon.stub(transaction, 'update');
+        stubAggregate = sinon.stub(transaction, 'aggregate');
 
         stubFindById.yields(null, {"_id":"58544c4cecc68db2094363a7","account":{"group":{"id":"57a8c444eb388272368806b3","code":"FAMILY"},"id":"579a5a314a4eff2f21d5a109","code":"FDMARK"},"payee":{"name":"Tesco","id":"584f0408884e2dde51ce5f74"},"category":{"name":"Food: Groceries","id":"582719a9ccf666abafab3394"},"amount":100.99,"transactionDate": "2016-12-21T19:58:15.215Z","notes":"Second transaction","isCleared":false,"isPlaceholder":false,"repeating":{"frequency":{"increment":0,"code":""},"endOnDate":null,"prevDate":null,"nextDate":null}});
         stubSave.yields(null, {"_id":"58544c4cecc68db2094363a7","account":{"group":{"id":"57a8c444eb388272368806b3","code":"FAMILY"},"id":"579a5a314a4eff2f21d5a109","code":"FDMARK"},"payee":{"name":"Tesco","id":"584f0408884e2dde51ce5f74"},"category":{"name":"Food: Groceries","id":"582719a9ccf666abafab3394"},"amount":100.99,"transactionDate": "2016-12-21T19:58:15.215Z","notes":"Second transaction","isCleared":false,"isPlaceholder":false,"repeating":{"frequency":{"increment":0,"code":""},"endOnDate":null,"prevDate":null,"nextDate":null}});
+        stubAggregate.yields(null, [{ "_id" : null, "totalBalance" : 392.14 }]);
       })
 
 
@@ -65,7 +67,17 @@ describe('"Transaction" functional testing', function() {
               done();
           })
       })
+      it('should return valid JSON error data from the findAllRecentTransactions function if the account balance could not be updated', function(done) {
+        stubAggregate.yields({errCode: 1234, errDesc: 'made up error'}, null);
+        tstCtrl.findAllRecentTransactions("57a8c444eb388272368806b3", 5, function(err, data) {
+            // console.log(err, data);
+            expect(err, 'error was returned').to.not.be.null;
+            expect(data, 'no data was returned').to.be.null;
+            done();
+        })
+      })
       it('should return valid JSON error data from the findAllRecentTransactions function if no data is found', function(done) {
+          stubAggregate.yields(null, [{ "_id" : null, "totalBalance" : 392.14 }]);
           mockFind = {
             limit: function() {return this;},
             sort:  function() {return this;},
@@ -79,6 +91,30 @@ describe('"Transaction" functional testing', function() {
               // console.log(err, data);
               expect(err, 'no error was returned').to.not.be.null;
               expect(data, 'some data was returned').to.be.null;
+              done();
+          })
+      })
+
+
+    //CALCULATE-ACCOUNT-BALANCE
+      it('should return valid JSON data from the calculateAccountBalance function when there are some transactions for the account', function(done) {
+          tstCtrl.calculateAccountBalance("FDMARK", function(err, data) {
+              // console.log(err, data)
+              expect(err, 'no error was returned').to.be.null;
+              expect(data, 'some data was returned').to.not.be.null;
+              expect(data.accountBalance, 'no account balance returned').to.exist;
+              expect(parseFloat(data.accountBalance).toFixed(2), 'account balance was not at least 0.01').to.be.at.least(0.01);
+              done();
+          })
+      })
+      it('should return valid JSON data from the calculateAccountBalance function when there are no transactions for the account', function(done) {
+          stubAggregate.yields(null, []);
+          tstCtrl.calculateAccountBalance("FDMARK", function(err, data) {
+              // console.log(err, data)
+              expect(err, 'no error was returned').to.be.null;
+              expect(data, 'some data was returned').to.not.be.null;
+              expect(data.accountBalance, 'no account balance returned').to.exist;
+              expect(parseFloat(data.accountBalance).toFixed(2), 'account balance was not below 0.01').to.be.below(0.01);
               done();
           })
       })
@@ -158,7 +194,7 @@ describe('"Transaction" functional testing', function() {
         })
 
 
-    //UPDATE-CATEGORY
+    //UPDATE-TRANSACTION
       it('should return valid JSON data from the updateTransaction function', function(done) {
         let updateBody = {"transaction":{"_id":"5845c83f45aa390726439108", "account":{"group":{"id":"57a8c444eb388272368806b3","code":"FAMILY"},"id":"579a5a314a4eff2f21d5a109","code":"FDMARK"},"payee":{"name":"Tesco","id":"584f0408884e2dde51ce5f74"},"category":{"name":"Food: Groceries","id":"582719a9ccf666abafab3394"},"amount":9999.99,"transactionDate": "2016-12-21T19:58:15.215Z","notes":"Second transaction","isCleared":false,"isPlaceholder":false,"repeating":{"frequency":{"increment":0,"code":""},"endOnDate":null,"prevDate":null,"nextDate":null}}};
         let foundTrans = new transaction;
@@ -236,7 +272,7 @@ describe('"Transaction" functional testing', function() {
       })
 
 
-    //DELETE-CATEGORY
+    //DELETE-TRANSACTION
         it('should return valid JSON data from the deleteTransaction function', function(done) {
           let foundTrans = new transaction;
           foundTrans._id = '5845c83f45aa390726439108';
