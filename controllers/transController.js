@@ -82,7 +82,7 @@ const controller = function(moneyApiVars) {
 
   const findAllRecentTransactions = function(acctId, numRecs, done) {
       transaction.find({'account.id': acctId}).limit(parseInt(numRecs)).sort({transactionDate: -1, createdDate: -1}).exec(function(err, foundTrans) {
-        if (err || !foundTrans) {
+        if (err || !foundTrans || foundTrans.length === 0) {
             done(constructErrReturnObj(err, 'could not find any transactions', 404), null);
         } else {
             calculateAccountBalance(foundTrans[0].account.code, function(err, foundBalance) {

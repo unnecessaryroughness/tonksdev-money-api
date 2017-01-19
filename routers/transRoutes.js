@@ -62,7 +62,6 @@ const routes = function(moneyApiVars) {
                 } else {
                   //get all trans from that account group
                   transController.findAllRecentTransactions(req.params.acctid, req.params.recs, function(err, transData) {
-                    console.log(transData)
                     if (err || !transData) {
                       res.status(err.number || 404).json({"error": "could not find any transactions", "errDetails" : err});
                     } else {
