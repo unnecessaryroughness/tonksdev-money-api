@@ -118,13 +118,15 @@ const controller = function(moneyApiVars) {
           rtnTrans.account        = transFromDB.account;
           rtnTrans.payee          = transFromDB.payee;
           rtnTrans.category       = transFromDB.category;
-          rtnTrans.amount         = currencyFormat.format(transFromDB.amount, {code: "GBP"});
-          rtnTrans.transactionDate = dateFormat(transFromDB.transactionDate, "dd/mm/yyyy");
-          rtnTrans.createdDate    = dateFormat(transFromDB.createdDate, "dd/mm/yyyy");
+          // rtnTrans.amount         = currencyFormat.format(transFromDB.amount, {code: "GBP"});
+          rtnTrans.amount         = transFromDB.amount;
+          rtnTrans.transactionDate = dateFormat(transFromDB.transactionDate, "yyyy-mm-dd");
+          rtnTrans.createdDate    = dateFormat(transFromDB.createdDate, "yyyy-mm-dd");
           rtnTrans.notes          = transFromDB.notes;
           rtnTrans.isCleared      = transFromDB.isCleared;
           rtnTrans.isPlaceholder  = transFromDB.isPlaceholder;
-          rtnTrans.balance        = currencyFormat.format(0, {code: 'GBP'});
+          // rtnTrans.balance        = currencyFormat.format(0, {code: 'GBP'});
+          rtnTrans.balance        = 0;
           rtnTrans.repeating      = transFromDB.repeating;
           rtnTrans.links = {};
       }
@@ -142,7 +144,8 @@ const controller = function(moneyApiVars) {
       //set balance in descending order
       rtnTransList.forEach(function(val, idx, arr) {
         val.balance = totalBalance;
-        totalBalance = (totalBalance - parseFloat(val.amount.substr(1)).toFixed(2)).toFixed(2);
+        // totalBalance = (totalBalance - parseFloat(val.amount.substr(1)).toFixed(2)).toFixed(2);
+        totalBalance = (totalBalance - parseFloat(val.amount).toFixed(2)).toFixed(2);
       });
 
       return rtnTransList;
