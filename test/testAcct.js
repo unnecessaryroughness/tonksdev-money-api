@@ -458,7 +458,7 @@ describe('"Account" CRUD functional testing', function() {
                 data.account.accountCode.should.equal('RAINYDAYXXX');
                 data.account.accountName.should.equal('Rainy Day Savings AccountXXXX');
                 data.account.bankName.should.equal('HalifaxXXX');
-                data.account.balance.should.equal(111.89);
+                data.account.balance.should.equal("111.89");
                 done();
             })
         })
