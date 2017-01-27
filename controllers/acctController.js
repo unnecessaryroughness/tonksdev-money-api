@@ -411,7 +411,7 @@ const controller = function(moneyApiVars) {
           rtnAcct.accountType  = acctFromDB.accountType;
           rtnAcct.bankName     = acctFromDB.bankName;
           rtnAcct.accountGroup = acctFromDB.accountGroup;
-          rtnAcct.balance      = acctFromDB.balance;
+          rtnAcct.balance      = acctFromDB.balance.toFixed(2);
           rtnAcct.createdDate  = acctFromDB.createdDate;
           rtnAcct.links = {};
       }

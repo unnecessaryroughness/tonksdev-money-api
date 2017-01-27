@@ -101,7 +101,7 @@ const controller = function(moneyApiVars) {
       if (err) {
         done(constructErrReturnObj(err, 'could not get aggregate of account transactions', 500), null);
       } else {
-        if (foundBalance.length > 0 && parseFloat(foundBalance[0].totalBalance) > 0) {
+        if (foundBalance.length > 0) {
           done(null, {'accountBalance': foundBalance[0].totalBalance.toFixed(2)});
         } else {
           done(null, {'accountBalance': parseFloat(0).toFixed(2)});

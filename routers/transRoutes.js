@@ -114,14 +114,18 @@ const routes = function(moneyApiVars) {
           } else {
             //found trans, so user has the authority to update it
             transController.updateTransaction(req.params.tid, req.body, function(err, updatedTrans) {
-              updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
-              resetAccountBalance(req.headers.userid, updatedTrans.transaction.account.id, updatedTrans.transaction.account.code, function(err, balData) {
-                if (err || !balData) {
-                  res.status(err.number || 500).json({"error": "error updating balance of account", "errDetails" : err});
-                } else {
-                  res.status(200).json(updatedTrans);
-                }
-              })
+              if (err || !updatedTrans) {
+                res.status(err.number || 403).json({"error": "failed to update transaction", "errDetails" : err});                  
+              } else {
+                updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
+                resetAccountBalance(req.headers.userid, updatedTrans.transaction.account.id, updatedTrans.transaction.account.code, function(err, balData) {
+                  if (err || !balData) {
+                    res.status(err.number || 500).json({"error": "error updating balance of account", "errDetails" : err});
+                  } else {
+                    res.status(200).json(updatedTrans);
+                  }
+                })
+              }
             })
           }
         })
