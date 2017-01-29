@@ -16,6 +16,17 @@ const TransactionSchema = Schema({
         type: String,
         required: false
       },
+      previous: {
+        code: {
+          type: String,
+          required: false
+        },
+        id: {
+          type: Schema.Types.ObjectId,
+          required: false,
+          ref: 'account'
+        }
+      },
       group: {
         code: {
           type: String,

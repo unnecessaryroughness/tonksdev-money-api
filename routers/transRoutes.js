@@ -115,14 +115,24 @@ const routes = function(moneyApiVars) {
             //found trans, so user has the authority to update it
             transController.updateTransaction(req.params.tid, req.body, function(err, updatedTrans) {
               if (err || !updatedTrans) {
-                res.status(err.number || 403).json({"error": "failed to update transaction", "errDetails" : err});                  
+                res.status(err.number || 403).json({"error": "failed to update transaction", "errDetails" : err});
               } else {
                 updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
                 resetAccountBalance(req.headers.userid, updatedTrans.transaction.account.id, updatedTrans.transaction.account.code, function(err, balData) {
                   if (err || !balData) {
                     res.status(err.number || 500).json({"error": "error updating balance of account", "errDetails" : err});
                   } else {
-                    res.status(200).json(updatedTrans);
+                    if (req.body.transaction.account.previous && req.body.transaction.account.previous.id && req.body.transaction.account.previous.code) {
+                      resetAccountBalance(req.headers.userid, req.body.transaction.account.previous.id, req.body.transaction.account.previous.code, function(err, balData) {
+                        if (err || !balData) {
+                          res.status(err.number || 500).json({"error": "error updating balance of previous account", "errDetails" : err});
+                        } else {
+                          res.status(200).json(updatedTrans);
+                        }
+                      })
+                    } else {
+                      res.status(200).json(updatedTrans);
+                    }
                   }
                 })
               }
@@ -158,7 +168,7 @@ const routes = function(moneyApiVars) {
           } else {
             //check that the user is in the account group for the trans
             accountController.findAccountGroup(uid, transData.transaction.account.group.id, null, function(err, groupData) {
-              if (err || !groupData) {
+              if ((err || !groupData) && transData.transaction.account.group.length > 0) {
                 done({"error": "access denied", "errDetails" : err}, null);
               } else {
                 done(null, transData);
@@ -167,6 +177,7 @@ const routes = function(moneyApiVars) {
           }
       })
     }
+
 
     function resetAccountBalance(uid, acctid, acctcode, done) {
       transController.calculateAccountBalance(acctcode, function(err, foundBalance) {

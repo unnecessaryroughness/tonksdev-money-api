@@ -9,13 +9,18 @@ const controller = function(moneyApiVars) {
   'use strict';
 
   const findTransaction = function(tid, done) {
+    if (tid == 0) {
+      let newTrans = new transaction;
+      done(null, {'transaction': constructTransObjectForRead(newTrans)});
+    } else {
       transaction.findById(tid, function(err, foundTrans) {
-          if (err || !foundTrans) {
-              done(constructErrReturnObj(err, 'could not find transaction', 404), null);
-          } else {
-              done(null, {'transaction': constructTransObjectForRead(foundTrans)});
-          }
+        if (err || !foundTrans) {
+          done(constructErrReturnObj(err, 'could not find transaction', 404), null);
+        } else {
+          done(null, {'transaction': constructTransObjectForRead(foundTrans)});
+        }
       })
+    }
   }
 
 
@@ -118,18 +123,17 @@ const controller = function(moneyApiVars) {
           rtnTrans.account        = transFromDB.account;
           rtnTrans.payee          = transFromDB.payee;
           rtnTrans.category       = transFromDB.category;
-          // rtnTrans.amount         = currencyFormat.format(transFromDB.amount, {code: "GBP"});
           rtnTrans.amount         = transFromDB.amount;
           rtnTrans.transactionDate = dateFormat(transFromDB.transactionDate, "yyyy-mm-dd");
           rtnTrans.createdDate    = dateFormat(transFromDB.createdDate, "yyyy-mm-dd");
           rtnTrans.notes          = transFromDB.notes;
           rtnTrans.isCleared      = transFromDB.isCleared;
           rtnTrans.isPlaceholder  = transFromDB.isPlaceholder;
-          // rtnTrans.balance        = currencyFormat.format(0, {code: 'GBP'});
           rtnTrans.balance        = 0;
           rtnTrans.repeating      = transFromDB.repeating;
           rtnTrans.links = {};
       }
+
       return rtnTrans;
   }
 
