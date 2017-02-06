@@ -42,12 +42,12 @@ const TransactionSchema = Schema({
     payee: {
       id: {
         type: Schema.Types.ObjectId,
-        required: true,
+        required: false,
         ref: 'payee'
       },
       name: {
         type: String,
-        required: true
+        required: false
       },
       transferAccount: {
         code: {
@@ -58,6 +58,11 @@ const TransactionSchema = Schema({
           type: Schema.Types.ObjectId,
           required: false,
           ref: 'account'
+        },
+        transaction: {
+          type: Schema.Types.ObjectId,
+          required: false,
+          ref: 'transaction'
         }
       }
     },

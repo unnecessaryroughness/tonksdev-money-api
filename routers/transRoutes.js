@@ -33,14 +33,19 @@ const routes = function(moneyApiVars) {
                           } else {
                             //found accountgroup and the user is authorised to add new records to it
                             transController.createTransaction(req.body, function(err, newTrans) {
-                              newTrans.transaction = addHATEOS(newTrans.transaction, req.headers.host);
-                              resetAccountBalance(req.headers.userid, newTrans.transaction.account.id, newTrans.transaction.account.code, function(err, balData) {
-                                if (err || !balData) {
-                                  res.status(err.number || 500).json({"error": "error updating balance of account", "errDetails" : err});
-                                } else {
-                                  res.status(200).json(newTrans);
-                                }
-                              });
+                              if (err || !newTrans) {
+                                console.log(err);
+                                res.status(err.number || 403).json({"error": "could not create transaction", "errDetails" : err});
+                              } else {
+                                newTrans.transaction = addHATEOS(newTrans.transaction, req.headers.host);
+                                resetAccountBalance(req.headers.userid, newTrans.transaction.account.id, newTrans.transaction.account.code, function(err, balData) {
+                                  if (err || !balData) {
+                                    res.status(err.number || 500).json({"error": "error updating balance of account", "errDetails" : err});
+                                  } else {
+                                    res.status(200).json(newTrans);
+                                  }
+                                });
+                              }
                             })
                           }
                         })

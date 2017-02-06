@@ -26,6 +26,9 @@ const controller = function(moneyApiVars) {
 
   const createTransaction = function(reqBody, done) {
     let txn = reqBody.transaction || {};
+
+    console.log(reqBody);
+
     if ((txn.account  && txn.account.id && txn.account.group.id) &&
         (txn.payee    && (txn.payee.id || txn.payee.transferAccount.id)) &&
         (txn.category && txn.category.id) &&
@@ -168,6 +171,13 @@ const controller = function(moneyApiVars) {
           newTrans.isCleared     = transFromApp.isCleared;
           newTrans.isPlaceholder = transFromApp.isPlaceholder;
           newTrans.repeating     = transFromApp.repeating;
+
+          if (!newTrans.payee.id) {
+            newTrans.payee.id = null;
+          }
+          if (!newTrans.payee.transferAccount.id) {
+            newTrans.payee.transferAccount.id = null;
+          }
       }
       return newTrans;
   }
