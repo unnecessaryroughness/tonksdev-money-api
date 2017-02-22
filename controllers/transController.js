@@ -27,19 +27,50 @@ const controller = function(moneyApiVars) {
   const createTransaction = function(reqBody, done) {
     let txn = reqBody.transaction || {};
 
-    console.log(reqBody);
-
     if ((txn.account  && txn.account.id && txn.account.group.id) &&
         (txn.payee    && (txn.payee.id || txn.payee.transferAccount.id)) &&
         (txn.category && txn.category.id) &&
         (txn.amount)) {
+
+      if (txn.payee.transferAccount) {
+        //construct second transaction if this is a transfer
+        var txfTrans = constructTransObjectForSave(reqBody.transaction);
+        txfTrans.account.id = txn.payee.transferAccount.id;
+        txfTrans.account.code = txn.payee.transferAccount.code;
+        txn.payee.transferAccount = null;
+      }
 
       let newTrans = constructTransObjectForSave(reqBody.transaction);
       newTrans.save(function(err, savedTrans) {
           if (err || !savedTrans) {
             done(constructErrReturnObj(err, 'error saving new transaction', 500), {'saveStatus': 'failed create'});
           } else {
-            done(null, {'saveStatus': 'created', 'transaction': constructTransObjectForRead(savedTrans)});
+            if (txfTrans) {
+              txfTrans.payee.transferAccount.id = savedTrans.account.id;
+              txfTrans.payee.transferAccount.code = savedTrans.account.code;
+              txfTrans.payee.transferAccount.transaction = savedTrans.id;
+              txfTrans.amount = savedTrans.amount - (savedTrans.amount * 2);
+              txfTrans.save(function(err, savedTxfTrans) {
+                if (err || !savedTrans) {
+                  done(constructErrReturnObj(err, 'error saving transfer transaction', 500), {'saveStatus': 'failed create'});
+                } else {
+                  updateTransaction(savedTrans.id, {"transaction": {
+                                                        "payee": {
+                                                          "transferAccount": {
+                                                            "id": txfTrans.account.id,
+                                                            "code": txfTrans.account.code,
+                                                            "transaction": txfTrans.id}}}}, function(err, updatedTrans) {
+                    if (err || !savedTrans) {
+                      done(constructErrReturnObj(err, 'error saving transfer transaction', 500), {'saveStatus': 'failed create'});
+                    } else {
+                      done(null, {'saveStatus': 'created', 'transaction': constructTransObjectForRead(updatedTrans.transaction)});
+                    }
+                  })
+                }
+              })
+            } else {
+              done(null, {'saveStatus': 'created', 'transaction': constructTransObjectForRead(savedTrans)});
+            }
           }
       });
     } else {
@@ -48,19 +79,41 @@ const controller = function(moneyApiVars) {
   }
 
 
-  const updateTransaction = function(tid, reqBody, done) {
+  const updateTransaction = function(tid, reqBody, done, recurse) {
     if (tid && reqBody) {
+
+      console.log(reqBody.transaction.payee.transferAccount)
       transaction.findById(tid, function(err, foundTrans) {
         if (err || !foundTrans) {
           done(constructErrReturnObj(err, 'transaction could not be found in the database', 404), {'saveStatus': 'failed update'});
         } else {
           let updatedTrans = constructTransObjectForUpdate(foundTrans, reqBody.transaction);
           updatedTrans.save(function(err, savedTrans) {
-              if (err) {
-                done(constructErrReturnObj(err, 'transaction record could not be updated in the database', 400), {'saveStatus': 'failed update'});
+            if (err) {
+              console.log(err, savedTrans)
+              done(constructErrReturnObj(err, 'transaction record could not be updated in the database', 400), {'saveStatus': 'failed update'});
+            } else {
+              let txn = reqBody.transaction || {};
+              if (!recurse && txn.payee && txn.payee.transferAccount && txn.payee.transferAccount.transaction) {
+                let txfId = txn.payee.transferAccount.transaction;
+                findTransaction(txfId, function(err, txfTxn) {
+                  if (err || !txfTxn) {
+                    done(constructErrReturnObj(err, 'transfer transaction record could not be found in the database', 400), {'saveStatus': 'failed update'});
+                  } else {
+                    txfTxn.transaction.amount = txn.amount - (txn.amount * 2);
+                    updateTransaction(txfId, txfTxn, function(err, savedTrans) {
+                      if (err || !savedTrans) {
+                        done(constructErrReturnObj(err, 'transfer transaction record could not be updated in the database', 400), {'saveStatus': 'failed update'});
+                      } else {
+                        done(null, {'saveStatus': 'updated', 'transaction': constructTransObjectForRead(savedTrans.transaction)});
+                      }
+                    }, true)
+                  }
+                })
               } else {
                 done(null, {'saveStatus': 'updated', 'transaction': constructTransObjectForRead(savedTrans)});
               }
+            }
           })
         }
       });
@@ -122,7 +175,7 @@ const controller = function(moneyApiVars) {
   const constructTransObjectForRead = function(transFromDB) {
       let rtnTrans = {id: null};
       if (transFromDB) {
-          rtnTrans.id             = transFromDB._id;
+          rtnTrans.id             = transFromDB._id || transFromDB.id;
           rtnTrans.account        = transFromDB.account;
           rtnTrans.payee          = transFromDB.payee;
           rtnTrans.category       = transFromDB.category;
