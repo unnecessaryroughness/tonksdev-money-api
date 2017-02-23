@@ -65,7 +65,7 @@ const controller = function(moneyApiVars) {
                     } else {
                       done(null, {'saveStatus': 'created', 'transaction': constructTransObjectForRead(updatedTrans.transaction)});
                     }
-                  })
+                  }, true)
                 }
               })
             } else {
@@ -80,9 +80,9 @@ const controller = function(moneyApiVars) {
 
 
   const updateTransaction = function(tid, reqBody, done, recurse) {
-    if (tid && reqBody) {
 
-      console.log(reqBody.transaction.payee.transferAccount)
+// debug("in update")
+    if (tid && reqBody) {
       transaction.findById(tid, function(err, foundTrans) {
         if (err || !foundTrans) {
           done(constructErrReturnObj(err, 'transaction could not be found in the database', 404), {'saveStatus': 'failed update'});
@@ -90,27 +90,38 @@ const controller = function(moneyApiVars) {
           let updatedTrans = constructTransObjectForUpdate(foundTrans, reqBody.transaction);
           updatedTrans.save(function(err, savedTrans) {
             if (err) {
-              console.log(err, savedTrans)
               done(constructErrReturnObj(err, 'transaction record could not be updated in the database', 400), {'saveStatus': 'failed update'});
             } else {
               let txn = reqBody.transaction || {};
               if (!recurse && txn.payee && txn.payee.transferAccount && txn.payee.transferAccount.transaction) {
+// debug("found a transfer txn")
                 let txfId = txn.payee.transferAccount.transaction;
                 findTransaction(txfId, function(err, txfTxn) {
                   if (err || !txfTxn) {
+// debug("couldn't find the transfer txn")
                     done(constructErrReturnObj(err, 'transfer transaction record could not be found in the database', 400), {'saveStatus': 'failed update'});
                   } else {
+// debug("found the transfer txn")
                     txfTxn.transaction.amount = txn.amount - (txn.amount * 2);
+                    txfTxn.transaction.category.name = txn.category.name;
+                    txfTxn.transaction.category.id = txn.category.id;
+                    txfTxn.transaction.account.code = txn.payee.transferAccount.code;
+                    txfTxn.transaction.account.id = txn.payee.transferAccount.id;
+                    txfTxn.transaction.payee.transferAccount.code = txn.account.code;
+                    txfTxn.transaction.payee.transferAccount.id = txn.account.id;
                     updateTransaction(txfId, txfTxn, function(err, savedTrans) {
                       if (err || !savedTrans) {
+// debug("couldn't update the transfer txn")
                         done(constructErrReturnObj(err, 'transfer transaction record could not be updated in the database', 400), {'saveStatus': 'failed update'});
                       } else {
+// debug("updated the transfer txn")
                         done(null, {'saveStatus': 'updated', 'transaction': constructTransObjectForRead(savedTrans.transaction)});
                       }
                     }, true)
                   }
                 })
               } else {
+// debug("no transfer txn to update")
                 done(null, {'saveStatus': 'updated', 'transaction': constructTransObjectForRead(savedTrans)});
               }
             }
@@ -123,7 +134,7 @@ const controller = function(moneyApiVars) {
   }
 
 
-  const deleteTransaction = function(tid, done) {
+  const deleteTransaction = function(tid, done, recurse) {
     if (tid) {
       transaction.findById(tid, function(err, foundTrans) {
         if (err || !foundTrans) {
@@ -133,7 +144,21 @@ const controller = function(moneyApiVars) {
             if (err) {
               done(constructErrReturnObj(err, 'error removing transaction from database', 500), {'saveStatus': 'failed delete'});
             } else {
-              done(null, {'saveStatus': 'deleted'});
+              if (!recurse && foundTrans.payee.transferAccount && foundTrans.payee.transferAccount.transaction) {
+debug("found transfer transaction to delete");
+                deleteTransaction(foundTrans.payee.transferAccount.transaction, function(err, data) {
+                  if (err || data.saveStatus !== "deleted") {
+debug("failed to delete transfer transaction - " + JSON.stringify(err) + " " + JSON.stringify(data));
+                    done(constructErrReturnObj(err, 'error removing transfer transaction from database', 500), {'saveStatus': 'failed delete'});
+                  } else {
+debug("deleted transfer transaction - ");
+                    done(null, {'saveStatus': 'deleted'});
+                  }
+                }, true)
+              } else {
+debug("no transfer transaction to delete");
+                done(null, {'saveStatus': 'deleted'});
+              }
             }
           })
         }
