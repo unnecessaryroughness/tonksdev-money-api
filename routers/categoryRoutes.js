@@ -25,8 +25,12 @@ const routes = function(moneyApiVars) {
             } else {
               //found category, so user has the authority to update it
               categoryController.createCategory(req.body, function(err, newCategory) {
-                newCategory.category = addHATEOS(newCategory.category, req.headers.host);
-                res.status(200).json(newCategory);
+                if (err || !newCategory) {
+                  res.status(err.number || 403).json({"error": "error creating new category", "errDetails" : err});
+                } else {
+                  newCategory.category = addHATEOS(newCategory.category, req.headers.host);
+                  res.status(200).json(newCategory);
+                }
               })
             }
           })
@@ -76,8 +80,12 @@ const routes = function(moneyApiVars) {
           } else {
             //found category, so user has the authority to update it
             categoryController.updateCategory(req.params.cid, req.body, function(err, updatedCategory) {
-              updatedCategory.category = addHATEOS(updatedCategory.category, req.headers.host);
-              res.status(200).json(updatedCategory);
+              if (err || !updatedCategory) {
+                res.status(err.number || 500).json({"error": "failed to update category", "errDetails" : err});
+              } else {
+                updatedCategory.category = addHATEOS(updatedCategory.category, req.headers.host);
+                res.status(200).json(updatedCategory);
+              }
             })
           }
         })
@@ -89,7 +97,11 @@ const routes = function(moneyApiVars) {
           } else {
             //found category, so user has the authority to update it
             categoryController.deleteCategory(req.params.cid, function(err, data) {
-              res.status(200).json(data);
+              if (err || !data) {
+                res.status(err.number || 500).json({"error": "failed to delete category", "errDetails" : err});
+              } else {
+                res.status(200).json(data);
+              }
             })
           }
         })

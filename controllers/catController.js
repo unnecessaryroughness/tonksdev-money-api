@@ -71,8 +71,9 @@ const controller = function(moneyApiVars) {
     }
   }
 
+
   const findAllCategories = function(acctGroup, done) {
-      category.find({'accountGroup': acctGroup}, function(err, foundCategories) {
+      category.find({'accountGroup': acctGroup}, null, {sort: {categoryName: 1}}, function(err, foundCategories) {
         if (err || !foundCategories) {
             done(constructErrReturnObj(err, 'could not find any categories', 404), null);
         } else {
@@ -80,7 +81,6 @@ const controller = function(moneyApiVars) {
         }
       })
   }
-
 
   const constructCategoryObjectForRead = function(catFromDB) {
       let rtnCat = {id: null};

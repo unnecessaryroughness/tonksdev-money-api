@@ -77,7 +77,7 @@ const controller = function(moneyApiVars) {
           if (err || !foundGroup) {
             done(constructErrReturnObj(err, 'could not find the requested account group', 404), null);
           } else {
-            account.find({accountGroup: foundGroup.accountGroup.id}, function(err, foundAccounts) {
+            account.find({accountGroup: foundGroup.accountGroup.id}, null, {sort: {accountCode: 1}}, function(err, foundAccounts) {
               if (err || !foundAccounts) {
                 done(constructErrReturnObj(err, 'could not find any account records in requested group', 404), null);
               } else {
