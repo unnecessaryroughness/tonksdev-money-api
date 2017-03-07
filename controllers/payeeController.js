@@ -72,7 +72,7 @@ const controller = function(moneyApiVars) {
   }
 
   const findAllPayees = function(acctGroup, done) {
-      payee.find({'accountGroup': acctGroup}, function(err, foundPayees) {
+      payee.find({'accountGroup': acctGroup}, null, {sort: {payeeName: 1}}, function(err, foundPayees) {
         if (err || !foundPayees) {
             done(constructErrReturnObj(err, 'could not find any payees', 404), null);
         } else {
