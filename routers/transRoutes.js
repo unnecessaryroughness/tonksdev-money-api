@@ -38,13 +38,22 @@ const routes = function(moneyApiVars) {
                                 res.status(err.number || 403).json({"error": "could not create transaction", "errDetails" : err});
                               } else {
                                 newTrans.transaction = addHATEOS(newTrans.transaction, req.headers.host);
-                                resetAccountBalance(req.headers.userid, newTrans.transaction.account.id, newTrans.transaction.account.code, function(err, balData) {
-                                  if (err || !balData) {
-                                    res.status(err.number || 500).json({"error": "error updating balance of account", "errDetails" : err});
+
+                                let accountsToRebalance = [];
+                                let txAccount = newTrans.transaction.account;
+                                let txTransferAccount = newTrans.transaction.payee.transferAccount;
+                                accountsToRebalance.push({id: txAccount.id, code: txAccount.code});
+                                if(txTransferAccount && txTransferAccount.id && txTransferAccount.code) {
+                                  accountsToRebalance.push({id: txTransferAccount.id, code: txTransferAccount.code});
+                                }
+                                resetAccountBalances(req.headers.userid, accountsToRebalance, function(err, rebalanceCount) {
+                                  if (err || !rebalanceCount) {
+                                    res.status(err.number || 500).json({"error": "error updating balance of previous account", "errDetails" : err});
                                   } else {
                                     res.status(200).json(newTrans);
                                   }
                                 });
+
                               }
                             })
                           }
@@ -123,23 +132,23 @@ const routes = function(moneyApiVars) {
                 res.status(err.number || 403).json({"error": "failed to update transaction", "errDetails" : err});
               } else {
                 updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
-                resetAccountBalance(req.headers.userid, updatedTrans.transaction.account.id, updatedTrans.transaction.account.code, function(err, balData) {
-                  if (err || !balData) {
-                    res.status(err.number || 500).json({"error": "error updating balance of account", "errDetails" : err});
+
+                let accountsToRebalance = [];
+                accountsToRebalance.push({id: updatedTrans.transaction.account.id, code: updatedTrans.transaction.account.code});
+                if (req.body.transaction.account.previous && req.body.transaction.account.previous.id && req.body.transaction.account.previous.code) {
+                  accountsToRebalance.push({id: req.body.transaction.account.previous.id, code: req.body.transaction.account.previous.code});
+                }
+                if(req.body.transaction.payee.transferAccount && req.body.transaction.payee.transferAccount.id && req.body.transaction.payee.transferAccount.code) {
+                  accountsToRebalance.push({id: req.body.transaction.payee.transferAccount.id, code: req.body.transaction.payee.transferAccount.code});
+                }
+                resetAccountBalances(req.headers.userid, accountsToRebalance, function(err, rebalanceCount) {
+                  if (err || !rebalanceCount) {
+                    res.status(err.number || 500).json({"error": "error updating balance of previous account", "errDetails" : err});
                   } else {
-                    if (req.body.transaction.account.previous && req.body.transaction.account.previous.id && req.body.transaction.account.previous.code) {
-                      resetAccountBalance(req.headers.userid, req.body.transaction.account.previous.id, req.body.transaction.account.previous.code, function(err, balData) {
-                        if (err || !balData) {
-                          res.status(err.number || 500).json({"error": "error updating balance of previous account", "errDetails" : err});
-                        } else {
-                          res.status(200).json(updatedTrans);
-                        }
-                      })
-                    } else {
-                      res.status(200).json(updatedTrans);
-                    }
+                    res.status(200).json(updatedTrans);
                   }
-                })
+                });
+
               }
             })
           }
@@ -152,13 +161,21 @@ const routes = function(moneyApiVars) {
           } else {
             //found trans, so user has the authority to update it
             transController.deleteTransaction(req.params.tid, function(err, data) {
-              resetAccountBalance(req.headers.userid, transData.transaction.account.id, transData.transaction.account.code, function(err, balData) {
-                if (err || !balData) {
-                  res.status(err.number || 500).json({"error": "error updating balance of account", "errDetails" : err});
+
+              let accountsToRebalance = [];
+              let txAccount = transData.transaction.account;
+              let txTransferAccount = transData.transaction.payee.transferAccount;
+              accountsToRebalance.push({id: txAccount.id, code: txAccount.code});
+              if(txTransferAccount && txTransferAccount.id && txTransferAccount.code) {
+                accountsToRebalance.push({id: txTransferAccount.id, code: txTransferAccount.code});
+              }
+              resetAccountBalances(req.headers.userid, accountsToRebalance, function(err, rebalanceCount) {
+                if (err || !rebalanceCount) {
+                  res.status(err.number || 500).json({"error": "error updating balance of previous account", "errDetails" : err});
                 } else {
                   res.status(200).json(data);
                 }
-              })
+              });
             })
           }
         })
@@ -198,6 +215,24 @@ const routes = function(moneyApiVars) {
           })
         }
       })
+    }
+
+
+    function resetAccountBalances(uid, acctlist, done) {
+      var calculated = 0;
+      for (let i = 0; i < acctlist.length; i++) {
+        resetAccountBalance(uid, acctlist[i].id, acctlist[i].code, function(err, data) {
+          if (err) {
+            done(err, null);
+            return;
+          } else {
+            debug("rebalancing account " + acctlist[i].id + " " + acctlist[i].code);
+            if (++calculated === acctlist.length) {
+              done(null, {balancesUpdated: i});
+            }
+          }
+        })
+      }
     }
 
     function addHATEOS(transRecord, hostAddress) {

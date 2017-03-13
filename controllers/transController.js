@@ -107,11 +107,11 @@ const controller = function(moneyApiVars) {
                     txfTxn.transaction.account.id = txn.payee.transferAccount.id;
                     txfTxn.transaction.payee.transferAccount.code = txn.account.code;
                     txfTxn.transaction.payee.transferAccount.id = txn.account.id;
-                    updateTransaction(txfId, txfTxn, function(err, savedTrans) {
-                      if (err || !savedTrans) {
+                    updateTransaction(txfId, txfTxn, function(err, savedTxfTrans) {
+                      if (err || !savedTxfTrans) {
                         done(constructErrReturnObj(err, 'transfer transaction record could not be updated in the database', 400), {'saveStatus': 'failed update'});
                       } else {
-                        done(null, {'saveStatus': 'updated', 'transaction': constructTransObjectForRead(savedTrans.transaction)});
+                        done(null, {'saveStatus': 'updated', 'transaction': constructTransObjectForRead(savedTrans)});
                       }
                     }, true)
                   }
