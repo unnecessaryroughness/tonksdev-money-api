@@ -41,6 +41,7 @@ const controller = function(moneyApiVars) {
       }
 
       let newTrans = constructTransObjectForSave(reqBody.transaction);
+
       newTrans.save(function(err, savedTrans) {
           if (err || !savedTrans) {
             done(constructErrReturnObj(err, 'error saving new transaction', 500), {'saveStatus': 'failed create'});
@@ -55,6 +56,8 @@ const controller = function(moneyApiVars) {
                   done(constructErrReturnObj(err, 'error saving transfer transaction', 500), {'saveStatus': 'failed create'});
                 } else {
                   updateTransaction(savedTrans.id, {"transaction": {
+                                                        "isCleared": txfTrans.isCleared,
+                                                        "isPlaceholder": txfTrans.isPlaceholder,
                                                         "payee": {
                                                           "transferAccount": {
                                                             "id": txfTrans.account.id,
