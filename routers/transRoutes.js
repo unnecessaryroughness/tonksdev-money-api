@@ -92,6 +92,32 @@ const routes = function(moneyApiVars) {
       });
 
 
+    transRouter.route('/placeholders/:acctid')
+        .get(function(req, res, next) {
+            if (req.headers.userid) {
+              //check that the current user is in the requested account group
+              accountController.findAccount(req.headers.userid, req.params.acctid, function(err, acctData) {
+                if (err || !acctData) {
+                  res.status(err.number || 403).json({"error": "access denied", "errDetails": err})
+                } else {
+                  //get all trans from that account group
+                  transController.findAllFuturePlaceholderTransactions(req.params.acctid, function(err, transData) {
+                    if (err || !transData) {
+                      res.status(err.number || 404).json({"error": "could not find any future-dated placeholder transactions", "errDetails" : err});
+                    } else {
+                      transData.transactionList.forEach(function(val, idx, arr) {
+                          val = addHATEOS(val, req.headers.host);
+                          val.account.name = acctData.account.accountName;
+                      });
+                      res.status(200).json(transData);
+                    }
+                  });
+                }
+              });
+            }
+      });
+
+
     transRouter.route('/clear/:tid')
       .put(function(req, res, next) {
         findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
@@ -101,9 +127,35 @@ const routes = function(moneyApiVars) {
             //found trans, so user has the authority to update it
             let currentClearedStatus = transData.transaction.isCleared;
             let targetClearedStatus = !currentClearedStatus;
-            transController.updateTransaction(req.params.tid, {"transaction": {isCleared: targetClearedStatus, notes: 'updated'}}, function(err, updatedTrans) {
-              updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
-              res.status(200).json(updatedTrans);
+            transController.updateTransaction(req.params.tid, {"transaction": {isCleared: targetClearedStatus}}, function(err, updatedTrans) {
+              if (err || !updatedTrans) {
+                res.status(err.number || 500).json({"error": "error updating transaction cleared flag", "errDetails" : err});
+              } else {
+                updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
+                res.status(200).json(updatedTrans);
+              }
+            })
+          }
+        })
+      })
+
+
+    transRouter.route('/adjust/:tid')
+      .put(function(req, res, next) {
+        findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
+          if (err || !transData) {
+            res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
+          } else {
+            //found trans, so user has the authority to update it
+            let currentAmount = transData.transaction.amount;
+            let targetAmount = (parseFloat(currentAmount) + parseFloat(req.body.adjustBy)).toFixed(2);
+            transController.updateTransaction(req.params.tid, {"transaction": {amount: targetAmount}}, function(err, updatedTrans) {
+              if (err || !updatedTrans) {
+                res.status(err.number || 500).json({"error": "error updating transaction balance", "errDetails" : err});
+              } else {
+                updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
+                res.status(200).json(updatedTrans);
+              }
             })
           }
         })

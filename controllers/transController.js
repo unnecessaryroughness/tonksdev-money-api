@@ -2,6 +2,7 @@ const mongoose = require('mongoose'),
     debug = require('debug')('tonksDEV:money:api:controller:transaction'),
     constructErrReturnObj = require('../common/moneyErrorObj'),
     dateFormat = require("dateformat"),
+    dateFuncs = require("../common/dateFunctions"),
     currencyFormat = require("currency-formatter"),
     transaction = require('../models/transactionModel');
 
@@ -176,6 +177,19 @@ const controller = function(moneyApiVars) {
       })
   }
 
+
+  const findAllFuturePlaceholderTransactions = function(acctId, done) {
+      let today = dateFuncs.getTodaysDateYMD;
+      transaction.find({'account.id': acctId, 'isPlaceholder': true, 'transactionDate': {$gte: new Date(today)}}).sort({transactionDate: -1, createdDate: -1}).exec(function(err, foundTrans) {
+        if (err || !foundTrans || foundTrans.length === 0) {
+            done(constructErrReturnObj(err, 'could not find any transactions', 404), null);
+        } else {
+            done(null, {'transactionList': constructTransList(foundTrans, 0)});
+        }
+      })
+  }
+
+
   const calculateAccountBalance = function(accountCode, done) {
     transaction.aggregate([{$match: {"account.code": accountCode}}, { $group: {_id: null, totalBalance: {$sum: "$amount"}} }], function(err, foundBalance) {
       if (err) {
@@ -277,6 +291,7 @@ const controller = function(moneyApiVars) {
     updateTransaction: updateTransaction,
     createTransaction: createTransaction,
     findAllRecentTransactions: findAllRecentTransactions,
+    findAllFuturePlaceholderTransactions: findAllFuturePlaceholderTransactions,
     deleteTransaction: deleteTransaction,
     calculateAccountBalance: calculateAccountBalance
   }
