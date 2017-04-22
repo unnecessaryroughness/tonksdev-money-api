@@ -3,7 +3,7 @@ const mongoose = require('mongoose'),
       account = require('../models/accountModel'),
       accountGroup = require('../models/accountGroupModel'),
       constructErrReturnObj = require('../common/moneyErrorObj'),
-      dateFuncs = require('../common/dateFunctions')(),
+      dateFuncs = require('../common/dateFunctions'),
       crypto = require('crypto'),
       userController = require('./userController')();
 

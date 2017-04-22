@@ -179,7 +179,7 @@ const controller = function(moneyApiVars) {
 
 
   const findAllFuturePlaceholderTransactions = function(acctId, done) {
-      let today = dateFuncs.getTodaysDateYMD;
+      let today = dateFuncs.getTodaysDateYMD();
       transaction.find({'account.id': acctId, 'isPlaceholder': true, 'transactionDate': {$gte: new Date(today)}}).sort({transactionDate: -1, createdDate: -1}).exec(function(err, foundTrans) {
         if (err || !foundTrans || foundTrans.length === 0) {
             done(constructErrReturnObj(err, 'could not find any transactions', 404), null);

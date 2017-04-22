@@ -12,4 +12,4 @@ const dateFuncs = function() {
 
 }
 
-module.exports = dateFuncs;
+module.exports = dateFuncs();
