@@ -118,6 +118,32 @@ const routes = function(moneyApiVars) {
       });
 
 
+    transRouter.route('/payeerecent/:acctid/:payeeid/:catid?')
+        .get(function(req, res, next) {
+            if (req.headers.userid) {
+              //check that the current user is in the requested account group
+              accountController.findAccount(req.headers.userid, req.params.acctid, function(err, acctData) {
+                if (err || !acctData) {
+                  res.status(err.number || 403).json({"error": "access denied", "errDetails": err})
+                } else {
+                  //get all trans from that account group
+                  transController.findMostRecentTransactionForPayee(req.params.acctid, req.params.payeeid, req.params.catid, function(err, transData) {
+                    if (err || !transData) {
+                      res.status(err.number || 404).json({"error": "could not find any recent transactions for this payee", "errDetails" : err});
+                    } else {
+                      transData.transactionList.forEach(function(val, idx, arr) {
+                          val = addHATEOS(val, req.headers.host);
+                          val.account.name = acctData.account.accountName;
+                      });
+                      res.status(200).json(transData);
+                    }
+                  });
+                }
+              });
+            }
+      });
+
+
     transRouter.route('/clear/:tid')
       .put(function(req, res, next) {
         findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
@@ -153,8 +179,14 @@ const routes = function(moneyApiVars) {
               if (err || !updatedTrans) {
                 res.status(err.number || 500).json({"error": "error updating transaction balance", "errDetails" : err});
               } else {
-                updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
-                res.status(200).json(updatedTrans);
+                resetAccountBalance(req.headers.userid, transData.transaction.account.id, transData.transaction.account.code, function(err, data) {
+                  if (err || !data) {
+                    res.status(err.number || 500).json({"error": "error refreshing account balance", "errDetails" : err})
+                  } else {
+                    updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
+                    res.status(200).json(updatedTrans);
+                  }
+                })
               }
             })
           }

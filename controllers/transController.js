@@ -190,6 +190,28 @@ const controller = function(moneyApiVars) {
   }
 
 
+  const findMostRecentTransactionForPayee = function(acctId, payeeId, categoryId, done) {
+      let today = dateFuncs.getTodaysDateYMD();
+      if (categoryId) {
+        transaction.find({'account.id': acctId, 'payee.id': payeeId, 'category.id': categoryId}).sort({transactionDate: -1, createdDate: -1}).limit(1).exec(function(err, foundTrans) {
+          if (err || !foundTrans || foundTrans.length === 0) {
+            done(constructErrReturnObj(err, 'could not find any transactions', 404), null);
+          } else {
+            done(null, {'transactionList': constructTransList(foundTrans, 0)});
+          }
+        })
+      } else {
+        transaction.find({'account.id': acctId, 'payee.id': payeeId}).sort({transactionDate: -1, createdDate: -1}).limit(1).exec(function(err, foundTrans) {
+          if (err || !foundTrans || foundTrans.length === 0) {
+            done(constructErrReturnObj(err, 'could not find any transactions', 404), null);
+          } else {
+            done(null, {'transactionList': constructTransList(foundTrans, 0)});
+          }
+        })
+      }
+  }
+
+
   const calculateAccountBalance = function(accountCode, done) {
     transaction.aggregate([{$match: {"account.code": accountCode}}, { $group: {_id: null, totalBalance: {$sum: "$amount"}} }], function(err, foundBalance) {
       if (err) {
@@ -293,7 +315,8 @@ const controller = function(moneyApiVars) {
     findAllRecentTransactions: findAllRecentTransactions,
     findAllFuturePlaceholderTransactions: findAllFuturePlaceholderTransactions,
     deleteTransaction: deleteTransaction,
-    calculateAccountBalance: calculateAccountBalance
+    calculateAccountBalance: calculateAccountBalance,
+    findMostRecentTransactionForPayee: findMostRecentTransactionForPayee
   }
 }
 
