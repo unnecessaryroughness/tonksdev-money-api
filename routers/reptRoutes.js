@@ -192,65 +192,65 @@ const routes = function(moneyApiVars) {
             }
           })
         })
-    //   .put(function(req, res, next) {
-    //     findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
-    //       if (err || !transData) {
-    //         res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
-    //       } else {
-    //         //found trans, so user has the authority to update it
-    //         transController. updateTransaction(req.params.tid, req.body, function(err, updatedTrans) {
-    //           if (err || !updatedTrans) {
-    //             res.status(err.number || 403).json({"error": "failed to update transaction", "errDetails" : err});
-    //           } else {
-    //             updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
-    //
-    //             let accountsToRebalance = [];
-    //             accountsToRebalance.push({id: updatedTrans.transaction.account.id, code: updatedTrans.transaction.account.code});
-    //             if (req.body.transaction.account.previous && req.body.transaction.account.previous.id && req.body.transaction.account.previous.code) {
-    //               accountsToRebalance.push({id: req.body.transaction.account.previous.id, code: req.body.transaction.account.previous.code});
-    //             }
-    //             if(req.body.transaction.payee.transferAccount && req.body.transaction.payee.transferAccount.id && req.body.transaction.payee.transferAccount.code) {
-    //               accountsToRebalance.push({id: req.body.transaction.payee.transferAccount.id, code: req.body.transaction.payee.transferAccount.code});
-    //             }
-    //             resetAccountBalances(req.headers.userid, accountsToRebalance, function(err, rebalanceCount) {
-    //               if (err || !rebalanceCount) {
-    //                 res.status(err.number || 500).json({"error": "error updating balance of previous account", "errDetails" : err});
-    //               } else {
-    //                 res.status(200).json(updatedTrans);
-    //               }
-    //             });
-    //
-    //           }
-    //         })
-    //       }
-    //     })
-    //   })
-    //   .delete(function(req, res, next) {
-    //     findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
-    //       if (err || !transData) {
-    //         res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
-    //       } else {
-    //         //found trans, so user has the authority to update it
-    //         transController.deleteTransaction(req.params.tid, function(err, data) {
-    //
-    //           let accountsToRebalance = [];
-    //           let txAccount = transData.transaction.account;
-    //           let txTransferAccount = transData.transaction.payee.transferAccount;
-    //           accountsToRebalance.push({id: txAccount.id, code: txAccount.code});
-    //           if(txTransferAccount && txTransferAccount.id && txTransferAccount.code) {
-    //             accountsToRebalance.push({id: txTransferAccount.id, code: txTransferAccount.code});
-    //           }
-    //           resetAccountBalances(req.headers.userid, accountsToRebalance, function(err, rebalanceCount) {
-    //             if (err || !rebalanceCount) {
-    //               res.status(err.number || 500).json({"error": "error updating balance of previous account", "errDetails" : err});
-    //             } else {
-    //               res.status(200).json(data);
-    //             }
-    //           });
-    //         })
-    //       }
-    //     })
-    //   });
+      .put(function(req, res, next) {
+        findAndValidateRept(req.headers.userid, req.params.rid, function(err, reptData) {
+          if (err || !reptData) {
+            res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
+          } else {
+            //found repeating trans, so user has the authority to update it
+            reptController.updateRepeating(req.params.rid, req.body, function(err, updatedRepeat) {
+              if (err || !updatedRepeat) {
+                res.status(err.number || 403).json({"error": "failed to update repeating transaction", "errDetails" : err});
+              } else {
+                updatedRepeat.transaction = addHATEOS(updatedRepeat.transaction, req.headers.host);
+                res.status(200).json(updatedRepeat);
+              }
+            })
+          }
+        })
+      })
+      .delete(function(req, res, next) {
+        findAndValidateRept(req.headers.userid, req.params.rid, function(err, reptData) {
+          if (err || !reptData) {
+            res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
+          } else {
+            //found repeating trans, so user has the authority to update it
+            reptController.deleteRepeating(req.params.rid, function(err, data) {
+              if (err || !data) {
+                res.status(err.number || 500).json({"error": "error deleting repeating transaction", "errDetails" : err});
+              } else {
+                res.status(200).json(data);
+              }
+            })
+          }
+        })
+      });
+
+
+    reptRouter.route('/group/:accg/todate/:dte')
+      .get(function(req, res, next) {
+        accountController.findAccountGroup(req.headers.userid, req.params.accg, null, function(err, groupData) {
+          if (err || !groupData) {
+            res.status(err.number || 403).json({"error": "access to account group denied", "errDetails" : err});
+          } else {
+            //found accountgroup and the user is authorised to add new records to it
+            reptController.findRepeatingToDate(req.params.dte, function(err, reptList) {
+              if (err || !reptList) {
+                res.status(err.number || 403).json({"error": "could not find repeating transaction list", "errDetails" : err});
+              } else {
+                reptList.transactionList.forEach(function(val, idx, arr) {
+                    val = addHATEOS(val, req.headers.host);
+                });
+                console.log(reptList);
+                res.status(200).json(reptList);
+              }
+            })
+          }
+        })
+      })
+
+
+
 
 
     function findAndValidateRept(uid, rid, done) {

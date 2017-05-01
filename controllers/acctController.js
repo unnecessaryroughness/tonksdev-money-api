@@ -189,6 +189,7 @@ const controller = function(moneyApiVars) {
       accountGroup.findById(groupid, function(err, foundGroup) {
           if (err) {
             if (err.name === 'CastError' && err.path === '_id') {
+              //we are searching for a group CODE, not an ID
               accountGroup.find({"groupCode": groupid}, function(err, foundGroupList) {
                 if (err || !foundGroupList) {
                   done(constructErrReturnObj(err, 'could not find the requested account group', 404), null);

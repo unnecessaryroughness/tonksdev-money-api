@@ -9,15 +9,6 @@ const mongoose = require('mongoose'),
 const controller = function(moneyApiVars) {
   'use strict';
 
-  // const findCategory = function(cid, done) {
-  //     category.findById(cid, function(err, foundCategory) {
-  //         if (err || !foundCategory) {
-  //             done(constructErrReturnObj(err, 'could not find category', 404), null);
-  //         } else {
-  //             done(null, {'category': constructCategoryObjectForRead(foundCategory)});
-  //         }
-  //     })
-  // }
 
   const findRepeating = function(rid, done) {
     if (rid == 0) {
@@ -32,6 +23,18 @@ const controller = function(moneyApiVars) {
         }
       })
     }
+  }
+
+
+  const findRepeatingToDate = function(dte, done) {
+    let dateDte = new Date(dte);
+    repeating.find({'repeating.nextDate': {$lte: dateDte}}, function(err, foundReptList) {
+      if (err || !foundReptList) {
+        done(constructErrReturnObj(err, 'could not find any repeating transactions', 404), null);
+      } else {
+        done(null, {'transactionList': constructReptObjectList(foundReptList)});
+      }
+    })
   }
 
 
@@ -59,54 +62,47 @@ const controller = function(moneyApiVars) {
   }
 
 
-  // const updateCategory = function(cid, reqBody, done) {
-  //   if (cid && reqBody) {
-  //     category.findById(cid, function(err, foundCategory) {
-  //       if (err || !foundCategory) {
-  //         done(constructErrReturnObj(err, 'category could not be found in the database', 404), {'saveStatus': 'failed update'});
-  //       } else {
-  //         let updatedCategory = constructCategoryObjectForUpdate(foundCategory, reqBody.category);
-  //         updatedCategory.save(function(err, savedCategory) {
-  //             if (err) {
-  //               done(constructErrReturnObj(err, 'category record could not be updated in the database', 400), {'saveStatus': 'failed update'});
-  //             } else {
-  //               done(null, {'saveStatus': 'updated', 'category': constructCategoryObjectForRead(savedCategory)});
-  //             }
-  //         })
-  //       }
-  //     });
-  //   }
-  // }
+
+  const updateRepeating = function(rid, reqBody, done) {
+    if (rid && reqBody) {
+      repeating.findById(rid, function(err, foundRepeat) {
+        if (err || !foundRepeat) {
+          done(constructErrReturnObj(err, 'repeating transaction could not be found in the database', 404), {'saveStatus': 'failed update'});
+        } else {
+          let updatedRepeat = constructReptObjectForUpdate(foundRepeat, reqBody.transaction);
+          updatedRepeat.save(function(err, savedRepeat) {
+            if (err) {
+              done(constructErrReturnObj(err, 'repeating transaction record could not be updated in the database', 400), {'saveStatus': 'failed update'});
+            } else {
+              done(null, {'saveStatus': 'updated', 'transaction': constructReptObjectForRead(savedRepeat)});
+            }
+          })
+        }
+      });
+    } else {
+      done(constructErrReturnObj(null, 'mandatory fields were not supplied', 500), {'saveStatus': 'failed update'});
+    }
+  }
 
 
-  // const deleteCategory = function(cid, done) {
-  //   if (cid) {
-  //     category.findById(cid, function(err, foundCategory) {
-  //       if (err || !foundCategory) {
-  //         done(constructErrReturnObj(err, 'category could not be found in the database', 404), {'saveStatus': 'failed delete'});
-  //       } else {
-  //         foundCategory.remove(function(err) {
-  //           if (err) {
-  //             done(constructErrReturnObj(err, 'error removing category from database', 500), {'saveStatus': 'failed delete'});
-  //           } else {
-  //             done(null, {'saveStatus': 'deleted'});
-  //           }
-  //         })
-  //       }
-  //     });
-  //   }
-  // }
+  const deleteRepeating = function(rid, done, recurse) {
+    if (rid) {
+      repeating.findById(rid, function(err, foundRepeat) {
+        if (err || !foundRepeat) {
+          done(constructErrReturnObj(err, 'repeating transaction could not be found in the database', 404), {'saveStatus': 'failed delete'});
+        } else {
+          foundRepeat.remove(function(err) {
+            if (err) {
+              done(constructErrReturnObj(err, 'error removing repeating transaction from database', 500), {'saveStatus': 'failed delete'});
+            } else {
+                done(null, {'saveStatus': 'deleted'});
+            }
+          })
+        }
+      });
+    }
+  }
 
-
-  // const findAllCategories = function(acctGroup, done) {
-  //     category.find({'accountGroup': acctGroup}, null, {sort: {categoryName: 1}}, function(err, foundCategories) {
-  //       if (err || !foundCategories) {
-  //           done(constructErrReturnObj(err, 'could not find any categories', 404), null);
-  //       } else {
-  //           done(null, {'categoryList': constructCategoryList(foundCategories)});
-  //       }
-  //     })
-  // }
 
 
   const constructReptObjectForRead = function(transFromDB) {
@@ -130,15 +126,16 @@ const controller = function(moneyApiVars) {
   }
 
 
-  // const constructCategoryList = function(catListFromDB) {
-  //     let rtnCatList = [];
-  //     if (catListFromDB && catListFromDB.length > 0) {
-  //         catListFromDB.forEach(function(val, idx, arr) {
-  //             rtnCatList.push(constructCategoryObjectForRead(val));
-  //         })
-  //     }
-  //     return rtnCatList;
-  // }
+  const constructReptObjectList = function(reptListFromDB) {
+      let rtnReptList = [];
+      if (reptListFromDB && reptListFromDB.length > 0) {
+          reptListFromDB.forEach(function(val, idx, arr) {
+              rtnReptList.push(constructReptObjectForRead(val));
+          })
+      }
+      return rtnReptList;
+  }
+
 
 
   const constructReptObjectForSave = function(transFromApp) {
@@ -164,22 +161,30 @@ const controller = function(moneyApiVars) {
       return newRept;
   }
 
-
-  // const constructCategoryObjectForUpdate = function(categoryObject, categoryFromApp) {
-  //     if (categoryFromApp) {
-  //         if (categoryFromApp.categoryName) categoryObject.categoryName = categoryFromApp.categoryName;
-  //         if (categoryFromApp.accountGroup) categoryObject.accountGroup = categoryFromApp.accountGroup;
-  //     }
-  //     return categoryObject;
-  // }
+  const constructReptObjectForUpdate = function(transObject, transFromApp) {
+      if (transFromApp) {
+          if (transFromApp.account)         transObject.account         = transFromApp.account;
+          if (transFromApp.payee)           transObject.payee           = transFromApp.payee;
+          if (transFromApp.category)        transObject.category        = transFromApp.category;
+          if (transFromApp.amount)          transObject.amount          = transFromApp.amount;
+          if (transFromApp.transactionDate) transObject.transactionDate = transFromApp.transactionDate;
+          if (transFromApp.notes)           transObject.notes           = transFromApp.notes;
+          if (transFromApp.isCleared)       transObject.isCleared       = transFromApp.isCleared;
+          if (!transFromApp.isCleared)      transObject.isCleared       = false;
+          if (transFromApp.isPlaceholder)   transObject.isPlaceholder   = transFromApp.isPlaceholder;
+          if (!transFromApp.isPlaceholder)  transObject.isPlaceholder   = transObject.isPlaceholder;
+          if (transFromApp.repeating)       transObject.repeating       = transFromApp.repeating;
+      }
+      return transObject;
+  }
 
 
   return {
     findRepeating: findRepeating,
-    // updateCategory: updateCategory,
-    createRepeating: createRepeating
-    // deleteCategory: deleteCategory,
-    // findAllCategories: findAllCategories
+    findRepeatingToDate: findRepeatingToDate,
+    createRepeating: createRepeating,
+    updateRepeating: updateRepeating,
+    deleteRepeating: deleteRepeating
   }
 }
 
