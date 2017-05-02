@@ -28,7 +28,7 @@ const controller = function(moneyApiVars) {
 
   const findRepeatingToDate = function(dte, done) {
     let dateDte = new Date(dte);
-    repeating.find({'repeating.nextDate': {$lte: dateDte}}, function(err, foundReptList) {
+    repeating.find({'repeating.nextDate': {$lte: dateDte}, 'repeating.endOnDate': {$gte: dateDte}}, function(err, foundReptList) {
       if (err || !foundReptList) {
         done(constructErrReturnObj(err, 'could not find any repeating transactions', 404), null);
       } else {

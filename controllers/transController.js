@@ -33,7 +33,7 @@ const controller = function(moneyApiVars) {
         (txn.category && txn.category.id) &&
         (txn.amount)) {
 
-      if (txn.payee.transferAccount) {
+      if (txn.payee.transferAccount && txn.payee.transferAccount.id) {
         //construct second transaction if this is a transfer
         var txfTrans = constructTransObjectForSave(reqBody.transaction);
         txfTrans.account.id = txn.payee.transferAccount.id;

@@ -227,6 +227,47 @@ const routes = function(moneyApiVars) {
       });
 
 
+
+    reptRouter.route('/apply/:rid')
+      .post(function(req, res, next) {
+        //apply a single repeating transaction
+        findAndValidateRept(req.headers.userid, req.params.rid, function(err, reptData) {
+          if (err || !reptData) {
+            res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
+          } else {
+            reptData.transaction.transactionDate = reptData.transaction.repeating.nextDate;
+            transController.createTransaction(reptData, function(err, createdTrans) {
+              if (err || !createdTrans) {
+                res.status(err.number || 500).json({"error": "error creating transaction from repeating transaction", "errDetails" : err});
+              } else {
+                //successfully applied the transaction - now update the repeating trans by incrementing the frequency
+                reptData.transaction.repeating.prevDate = reptData.transaction.repeating.nextDate;
+                reptData.transaction.repeating.nextDate = calculateNextRepeatingDate(reptData.transaction.repeating);
+                reptController.updateRepeating(req.params.rid, reptData, function(err, updatedRepeat) {
+                  if (err || !updatedRepeat) {
+                    res.status(err.number || 403).json({"error": "failed to update repeating transaction with revised nextDate", "errDetails" : err});
+                  } else {
+                    res.status(200).json(createdTrans);
+                  }
+                })
+              }
+            })
+          }
+        })
+      })
+
+
+
+    reptRouter.route('/applyto/:dte')
+      .post(function(req, res, next) {
+
+      })
+
+
+
+
+
+
     reptRouter.route('/group/:accg/todate/:dte')
       .get(function(req, res, next) {
         accountController.findAccountGroup(req.headers.userid, req.params.accg, null, function(err, groupData) {
@@ -310,6 +351,35 @@ const routes = function(moneyApiVars) {
       transRecord.links = [{"self": HATEOASProtocol + hostAddress + HATEOASJunction + transRecord.id}];
       return transRecord;
     }
+
+    function calculateNextRepeatingDate(reptParams) {
+      let baseDate  = reptParams.nextDate,
+          dBaseDate = new Date(baseDate),
+          dTargetDate = new Date(baseDate),
+          frequency = reptParams.frequency.code,
+          increment = reptParams.frequency.increment;
+
+      switch (frequency) {
+        case "D":
+          dTargetDate.setDate(dBaseDate.getDate()+increment);
+          break;
+        case "W":
+          dTargetDate.setDate(dBaseDate.getDate()+(increment*7));
+          break;
+        case "M":
+          dTargetDate.setMonth(dBaseDate.getMonth()+increment);
+          break;
+        case "Y":
+          dTargetDate.setFullYear(dBaseDate.getFullYear()+increment);
+          break;
+        default:
+          break;
+      }
+
+      return dTargetDate;
+    }
+
+
 
     return reptRouter;
 };
