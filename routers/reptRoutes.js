@@ -1,4 +1,5 @@
 const debug = require('debug')('tonksDEV:money:api:routing:repeating'),
+    dateFuncs = require("../common/dateFunctions"),
     express = require('express');
 
 const routes = function(moneyApiVars) {
@@ -236,6 +237,7 @@ const routes = function(moneyApiVars) {
             res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
           } else {
             reptData.transaction.transactionDate = reptData.transaction.repeating.nextDate;
+            reptData.transaction.createdDate = dateFuncs.getTodaysDateYMD()
             transController.createTransaction(reptData, function(err, createdTrans) {
               if (err || !createdTrans) {
                 res.status(err.number || 500).json({"error": "error creating transaction from repeating transaction", "errDetails" : err});
@@ -258,9 +260,52 @@ const routes = function(moneyApiVars) {
 
 
 
-    reptRouter.route('/applyto/:dte')
+    reptRouter.route('/group/:accg/applyto/:dte')
       .post(function(req, res, next) {
+          accountController.findAccountGroup(req.headers.userid, req.params.accg, null, function(err, groupData) {
+            if (err || !groupData) {
+              res.status(err.number || 403).json({"error": "access to account group denied", "errDetails" : err});
+            } else {
+              //found accountgroup and the user is authorised to add new records to it
+              reptController.findRepeatingToDate(req.params.dte, function(err, reptList) {
+                if (err || !reptList) {
+                  res.status(err.number || 403).json({"error": "could not find repeating transaction list", "errDetails" : err});
+                } else {
+                  var processed = 0;
+                  reptList.transactionList.forEach(function(val, idx, arr) {
 
+                      let tmpTrans = {transaction: null};
+                      tmpTrans.transaction = val;
+
+                      //create a new transaction based on this data
+                      tmpTrans.transaction.transactionDate = tmpTrans.transaction.repeating.nextDate;
+                      tmpTrans.transaction.createdDate = dateFuncs.getTodaysDateYMD();
+
+                      transController.createTransaction(tmpTrans, function(err, createdTrans) {
+                        if (err || !createdTrans) {
+                          return res.status(err.number || 500).json({"error": "error creating transaction from repeating transaction", "errDetails" : err});
+                          return;
+                        } else {
+                          //successfully applied the transaction - now update the repeating trans by incrementing the frequency
+                          tmpTrans.transaction.repeating.prevDate = tmpTrans.transaction.repeating.nextDate;
+                          tmpTrans.transaction.repeating.nextDate = calculateNextRepeatingDate(tmpTrans.transaction.repeating);
+                          reptController.updateRepeating(tmpTrans.transaction.id, tmpTrans, function(err, updatedRepeat) {
+                            if (err || !updatedRepeat) {
+                              return res.status(err.number || 403).json({"error": "failed to update repeating transaction with revised nextDate", "errDetails" : err});
+                            } else {
+                              if (++processed === reptList.transactionList.length) {
+                                return res.status(200).json({"repeatingTransactionsProcessed": processed});
+                              }
+                            }
+                          })
+                        }
+                      })
+
+                  });
+                }
+              })
+            }
+          })
       })
 
 
@@ -282,7 +327,6 @@ const routes = function(moneyApiVars) {
                 reptList.transactionList.forEach(function(val, idx, arr) {
                     val = addHATEOS(val, req.headers.host);
                 });
-                console.log(reptList);
                 res.status(200).json(reptList);
               }
             })
