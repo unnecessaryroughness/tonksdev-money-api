@@ -120,6 +120,26 @@ const controller = function(moneyApiVars) {
           rtnTrans.isPlaceholder  = transFromDB.isPlaceholder;
           rtnTrans.balance        = 0;
           rtnTrans.repeating      = transFromDB.repeating;
+
+          let evalInc = transFromDB.repeating.frequency.increment;
+
+          switch(transFromDB.repeating.frequency.code) {
+            case "D":
+              rtnTrans.repeating.frequency.description = "Every " + (evalInc > 1 ? evalInc + " Days" : "Day");
+              break;
+            case "W":
+              rtnTrans.repeating.frequency.description = "Every " + (evalInc > 1 ? evalInc + " Weeks" : "Week");
+              break;
+            case "M":
+              rtnTrans.repeating.frequency.description = "Every " + (evalInc > 1 ? evalInc + " Months" : "Month");
+              break;
+            case "Y":
+              rtnTrans.repeating.frequency.description = "Every " + (evalInc > 1 ? evalInc + " Years" : "Year");
+              break;
+            default:
+              rtnTrans.repeating.frequency.description = "Unknown";
+              break;
+          }
           rtnTrans.links = {};
       }
       return rtnTrans;

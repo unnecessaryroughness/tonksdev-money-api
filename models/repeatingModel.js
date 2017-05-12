@@ -132,6 +132,11 @@ const TransactionSchema = Schema({
           type: Number,
           required: false,
           default: 1
+        },
+        description: {
+          type: String,
+          required: false,
+          default: "Unknown"
         }
       }
     }

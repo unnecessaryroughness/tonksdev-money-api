@@ -54,134 +54,6 @@ const routes = function(moneyApiVars) {
 
 
 
-    // transRouter.route('/recent/:recs/:acctid')
-    //     .get(function(req, res, next) {
-    //         if (req.headers.userid) {
-    //           //check that the current user is in the requested account group
-    //           accountController.findAccount(req.headers.userid, req.params.acctid, function(err, acctData) {
-    //             if (err || !acctData) {
-    //               res.status(err.number || 403).json({"error": "access denied", "errDetails": err})
-    //             } else {
-    //               //get all trans from that account group
-    //               transController.findAllRecentTransactions(req.params.acctid, req.params.recs, function(err, transData) {
-    //                 if (err || !transData) {
-    //                   res.status(err.number || 404).json({"error": "could not find any transactions", "errDetails" : err});
-    //                 } else {
-    //                   transData.transactionList.forEach(function(val, idx, arr) {
-    //                       val = addHATEOS(val, req.headers.host);
-    //                       val.account.name = acctData.account.accountName;
-    //                   });
-    //                   res.status(200).json(transData);
-    //                 }
-    //               });
-    //             }
-    //           });
-    //         }
-    //   });
-
-
-    // transRouter.route('/placeholders/:acctid')
-    //     .get(function(req, res, next) {
-    //         if (req.headers.userid) {
-    //           //check that the current user is in the requested account group
-    //           accountController.findAccount(req.headers.userid, req.params.acctid, function(err, acctData) {
-    //             if (err || !acctData) {
-    //               res.status(err.number || 403).json({"error": "access denied", "errDetails": err})
-    //             } else {
-    //               //get all trans from that account group
-    //               transController.findAllFuturePlaceholderTransactions(req.params.acctid, function(err, transData) {
-    //                 if (err || !transData) {
-    //                   res.status(err.number || 404).json({"error": "could not find any future-dated placeholder transactions", "errDetails" : err});
-    //                 } else {
-    //                   transData.transactionList.forEach(function(val, idx, arr) {
-    //                       val = addHATEOS(val, req.headers.host);
-    //                       val.account.name = acctData.account.accountName;
-    //                   });
-    //                   res.status(200).json(transData);
-    //                 }
-    //               });
-    //             }
-    //           });
-    //         }
-    //   });
-
-
-    // transRouter.route('/payeerecent/:acctid/:payeeid/:catid?')
-    //     .get(function(req, res, next) {
-    //         if (req.headers.userid) {
-    //           //check that the current user is in the requested account group
-    //           accountController.findAccount(req.headers.userid, req.params.acctid, function(err, acctData) {
-    //             if (err || !acctData) {
-    //               res.status(err.number || 403).json({"error": "access denied", "errDetails": err})
-    //             } else {
-    //               //get all trans from that account group
-    //               transController.findMostRecentTransactionForPayee(req.params.acctid, req.params.payeeid, req.params.catid, function(err, transData) {
-    //                 if (err || !transData) {
-    //                   res.status(err.number || 404).json({"error": "could not find any recent transactions for this payee", "errDetails" : err});
-    //                 } else {
-    //                   transData.transactionList.forEach(function(val, idx, arr) {
-    //                       val = addHATEOS(val, req.headers.host);
-    //                       val.account.name = acctData.account.accountName;
-    //                   });
-    //                   res.status(200).json(transData);
-    //                 }
-    //               });
-    //             }
-    //           });
-    //         }
-    //   });
-
-
-    // transRouter.route('/clear/:tid')
-    //   .put(function(req, res, next) {
-    //     findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
-    //       if (err || !transData) {
-    //         res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
-    //       } else {
-    //         //found trans, so user has the authority to update it
-    //         let currentClearedStatus = transData.transaction.isCleared;
-    //         let targetClearedStatus = !currentClearedStatus;
-    //         transController.updateTransaction(req.params.tid, {"transaction": {isCleared: targetClearedStatus}}, function(err, updatedTrans) {
-    //           if (err || !updatedTrans) {
-    //             res.status(err.number || 500).json({"error": "error updating transaction cleared flag", "errDetails" : err});
-    //           } else {
-    //             updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
-    //             res.status(200).json(updatedTrans);
-    //           }
-    //         })
-    //       }
-    //     })
-    //   })
-
-
-    // transRouter.route('/adjust/:tid')
-    //   .put(function(req, res, next) {
-    //     findAndValidateTrans(req.headers.userid, req.params.tid, function(err, transData) {
-    //       if (err || !transData) {
-    //         res.status(err.number || 403).json({"error": "access denied", "errDetails" : err});
-    //       } else {
-    //         //found trans, so user has the authority to update it
-    //         let currentAmount = transData.transaction.amount;
-    //         let targetAmount = (parseFloat(currentAmount) + parseFloat(req.body.adjustBy)).toFixed(2);
-    //         transController.updateTransaction(req.params.tid, {"transaction": {amount: targetAmount}}, function(err, updatedTrans) {
-    //           if (err || !updatedTrans) {
-    //             res.status(err.number || 500).json({"error": "error updating transaction balance", "errDetails" : err});
-    //           } else {
-    //             resetAccountBalance(req.headers.userid, transData.transaction.account.id, transData.transaction.account.code, function(err, data) {
-    //               if (err || !data) {
-    //                 res.status(err.number || 500).json({"error": "error refreshing account balance", "errDetails" : err})
-    //               } else {
-    //                 updatedTrans.transaction = addHATEOS(updatedTrans.transaction, req.headers.host);
-    //                 res.status(200).json(updatedTrans);
-    //               }
-    //             })
-    //           }
-    //         })
-    //       }
-    //     })
-    //   })
-
-
     reptRouter.route('/:rid')
       .get(function(req, res, next) {
           findAndValidateRept(req.headers.userid, req.params.rid, function(err, reptData) {
@@ -310,9 +182,6 @@ const routes = function(moneyApiVars) {
 
 
 
-
-
-
     reptRouter.route('/group/:accg/todate/:dte')
       .get(function(req, res, next) {
         accountController.findAccountGroup(req.headers.userid, req.params.accg, null, function(err, groupData) {
@@ -321,6 +190,28 @@ const routes = function(moneyApiVars) {
           } else {
             //found accountgroup and the user is authorised to add new records to it
             reptController.findRepeatingToDate(req.params.dte, function(err, reptList) {
+              if (err || !reptList) {
+                res.status(err.number || 403).json({"error": "could not find repeating transaction list", "errDetails" : err});
+              } else {
+                reptList.transactionList.forEach(function(val, idx, arr) {
+                    val = addHATEOS(val, req.headers.host);
+                });
+                res.status(200).json(reptList);
+              }
+            })
+          }
+        })
+      })
+
+
+    reptRouter.route('/group/:accg/allrepeating')
+      .get(function(req, res, next) {
+        accountController.findAccountGroup(req.headers.userid, req.params.accg, null, function(err, groupData) {
+          if (err || !groupData) {
+            res.status(err.number || 403).json({"error": "access to account group denied", "errDetails" : err});
+          } else {
+            //found accountgroup and the user is authorised to add new records to it
+            reptController.findRepeatingToDate("2099-01-01", function(err, reptList) {
               if (err || !reptList) {
                 res.status(err.number || 403).json({"error": "could not find repeating transaction list", "errDetails" : err});
               } else {
