@@ -211,7 +211,8 @@ const routes = function(moneyApiVars) {
             res.status(err.number || 403).json({"error": "access to account group denied", "errDetails" : err});
           } else {
             //found accountgroup and the user is authorised to add new records to it
-            reptController.findRepeatingToDate("2099-01-01", function(err, reptList) {
+            // reptController.findRepeatingToDate("2099-01-01", function(err, reptList) {
+            reptController.findAllRepeating(function(err, reptList) {
               if (err || !reptList) {
                 res.status(err.number || 403).json({"error": "could not find repeating transaction list", "errDetails" : err});
               } else {

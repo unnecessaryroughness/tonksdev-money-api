@@ -28,7 +28,7 @@ const controller = function(moneyApiVars) {
 
   const findRepeatingToDate = function(dte, done) {
     let dateDte = new Date(dte);
-    repeating.find({'repeating.nextDate': {$lte: dateDte}, 'repeating.endOnDate': {$gte: dateDte}}, function(err, foundReptList) {
+    repeating.find({'repeating.nextDate': {$lte: dateDte}, 'repeating.endOnDate': {$gte: dateDte}}).sort({'repeating.nextDate': 1}).exec(function(err, foundReptList) {
       if (err || !foundReptList) {
         done(constructErrReturnObj(err, 'could not find any repeating transactions', 404), null);
       } else {
@@ -36,6 +36,20 @@ const controller = function(moneyApiVars) {
       }
     })
   }
+
+
+  const findAllRepeating = function(done) {
+    let dateDte = new Date();
+    repeating.find({'repeating.endOnDate': {$gte: dateDte}}).sort({'repeating.nextDate': 1}).exec(function(err, foundReptList) {
+      if (err || !foundReptList) {
+        done(constructErrReturnObj(err, 'could not find any repeating transactions', 404), null);
+      } else {
+        done(null, {'transactionList': constructReptObjectList(foundReptList)});
+      }
+    })
+  }
+
+
 
 
   const createRepeating = function(reqBody, done) {
@@ -202,6 +216,7 @@ const controller = function(moneyApiVars) {
   return {
     findRepeating: findRepeating,
     findRepeatingToDate: findRepeatingToDate,
+    findAllRepeating: findAllRepeating,
     createRepeating: createRepeating,
     updateRepeating: updateRepeating,
     deleteRepeating: deleteRepeating
