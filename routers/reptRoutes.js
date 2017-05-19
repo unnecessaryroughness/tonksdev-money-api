@@ -134,50 +134,13 @@ const routes = function(moneyApiVars) {
 
     reptRouter.route('/group/:accg/applyto/:dte')
       .post(function(req, res, next) {
-          accountController.findAccountGroup(req.headers.userid, req.params.accg, null, function(err, groupData) {
-            if (err || !groupData) {
-              res.status(err.number || 403).json({"error": "access to account group denied", "errDetails" : err});
-            } else {
-              //found accountgroup and the user is authorised to add new records to it
-              reptController.findRepeatingToDate(req.params.dte, function(err, reptList) {
-                if (err || !reptList) {
-                  res.status(err.number || 403).json({"error": "could not find repeating transaction list", "errDetails" : err});
-                } else {
-                  var processed = 0;
-                  reptList.transactionList.forEach(function(val, idx, arr) {
-
-                      let tmpTrans = {transaction: null};
-                      tmpTrans.transaction = val;
-
-                      //create a new transaction based on this data
-                      tmpTrans.transaction.transactionDate = tmpTrans.transaction.repeating.nextDate;
-                      tmpTrans.transaction.createdDate = dateFuncs.getTodaysDateYMD();
-
-                      transController.createTransaction(tmpTrans, function(err, createdTrans) {
-                        if (err || !createdTrans) {
-                          return res.status(err.number || 500).json({"error": "error creating transaction from repeating transaction", "errDetails" : err});
-                          return;
-                        } else {
-                          //successfully applied the transaction - now update the repeating trans by incrementing the frequency
-                          tmpTrans.transaction.repeating.prevDate = tmpTrans.transaction.repeating.nextDate;
-                          tmpTrans.transaction.repeating.nextDate = calculateNextRepeatingDate(tmpTrans.transaction.repeating);
-                          reptController.updateRepeating(tmpTrans.transaction.id, tmpTrans, function(err, updatedRepeat) {
-                            if (err || !updatedRepeat) {
-                              return res.status(err.number || 403).json({"error": "failed to update repeating transaction with revised nextDate", "errDetails" : err});
-                            } else {
-                              if (++processed === reptList.transactionList.length) {
-                                return res.status(200).json({"repeatingTransactionsProcessed": processed});
-                              }
-                            }
-                          })
-                        }
-                      })
-
-                  });
-                }
-              })
-            }
-          })
+        applyToDate(req.headers.userid, req.params.accg, req.params.dte, function(err, rtnData) {
+          if (err) {
+            return res.status(err.number || 403).json({"error": "failed to apply repeating transactions", "errDetails" : err});
+          } else {
+            return res.status(200).json({"repeatingTransactionsProcessed": rtnData.repeatingTransactionsProcessed});
+          }
+        })
       })
 
 
@@ -249,39 +212,58 @@ const routes = function(moneyApiVars) {
     }
 
 
-    // function resetAccountBalance(uid, acctid, acctcode, done) {
-    //   transController.calculateAccountBalance(acctcode, function(err, foundBalance) {
-    //     if (err || !foundBalance) {
-    //       done({"error": "could not calculate account balance", "accountcode": acctcode, "errDetails" : err}, null);
-    //     } else {
-    //       accountController.updateAccount(uid, acctid, {account: {balance: foundBalance.accountBalance}}, function(err, data) {
-    //         if (err || !data || !data.saveStatus || data.saveStatus !== 'updated') {
-    //           done(res.status(err.number || 500).json({"error": "error updating balance of account account", "acctid": acctid, "errDetails" : err}));
-    //         } else {
-    //           done(null, data);
-    //         }
-    //       })
-    //     }
-    //   })
-    // }
 
 
-    // function resetAccountBalances(uid, acctlist, done) {
-    //   var calculated = 0;
-    //   for (let i = 0; i < acctlist.length; i++) {
-    //     resetAccountBalance(uid, acctlist[i].id, acctlist[i].code, function(err, data) {
-    //       if (err) {
-    //         done(err, null);
-    //         return;
-    //       } else {
-    //         debug("rebalancing account " + acctlist[i].id + " " + acctlist[i].code);
-    //         if (++calculated === acctlist.length) {
-    //           done(null, {balancesUpdated: i});
-    //         }
-    //       }
-    //     })
-    //   }
-    // }
+    function applyToDate(userid, accg, dte, done) {
+      accountController.findAccountGroup(userid, accg, null, function(err, groupData) {
+        if (err || !groupData) {
+          done({"error": "access to account group denied", "errDetails" : err}, null);
+        } else {
+          //found accountgroup and the user is authorised to add new records to it
+          reptController.findRepeatingToDate(dte, function(err, reptList) {
+            if (err || !reptList) {
+              done({"error": "could not find repeating transaction list", "errDetails" : err}, null);
+            } else {
+              var processed = 0;
+              if (reptList.transactionList.length > 0) {
+                reptList.transactionList.forEach(function(val, idx, arr) {
+
+                    let tmpTrans = {transaction: null};
+                    tmpTrans.transaction = val;
+
+                    //create a new transaction based on this data
+                    tmpTrans.transaction.transactionDate = tmpTrans.transaction.repeating.nextDate;
+                    tmpTrans.transaction.createdDate = dateFuncs.getTodaysDateYMD();
+
+                    transController.createTransaction(tmpTrans, function(err, createdTrans) {
+                      if (err || !createdTrans) {
+                        done({"error": "error creating transaction from repeating transaction", "errDetails" : err}, null);
+                      } else {
+                        //successfully applied the transaction - now update the repeating trans by incrementing the frequency
+                        tmpTrans.transaction.repeating.prevDate = tmpTrans.transaction.repeating.nextDate;
+                        tmpTrans.transaction.repeating.nextDate = calculateNextRepeatingDate(tmpTrans.transaction.repeating);
+                        reptController.updateRepeating(tmpTrans.transaction.id, tmpTrans, function(err, updatedRepeat) {
+                          if (err || !updatedRepeat) {
+                            done({"error": "failed to update repeating transaction with revised nextDate", "errDetails" : err}, null);
+                          } else {
+                            if (++processed === reptList.transactionList.length) {
+                              applyToDate(userid, accg, dte, done);
+                            }
+                          }
+                        })
+                      }
+                    })
+                });
+              } else {
+                done(null, {"repeatingTransactionsProcessed": processed});
+              }
+            }
+          })
+        }
+      })
+    }
+
+
 
     function addHATEOS(transRecord, hostAddress) {
       transRecord.links = [{"self": HATEOASProtocol + hostAddress + HATEOASJunction + transRecord.id}];
