@@ -34,7 +34,6 @@ const routes = function(moneyApiVars) {
                             //found accountgroup and the user is authorised to add new records to it
                             transController.createTransaction(req.body, function(err, newTrans) {
                               if (err || !newTrans) {
-                                console.log(err);
                                 res.status(err.number || 403).json({"error": "could not create transaction", "errDetails" : err});
                               } else {
                                 newTrans.transaction = addHATEOS(newTrans.transaction, req.headers.host);

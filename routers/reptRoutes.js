@@ -38,7 +38,6 @@ const routes = function(moneyApiVars) {
                         if (err || !newRept) {
                           res.status(err.number || 403).json({"error": "could not create repeating transaction", "errDetails" : err});
                         } else {
-                          console.log(newRept);
                           newRept.transaction = addHATEOS(newRept.transaction, req.headers.host);
                           res.status(200).json(newRept);
                         }
@@ -114,14 +113,21 @@ const routes = function(moneyApiVars) {
               if (err || !createdTrans) {
                 res.status(err.number || 500).json({"error": "error creating transaction from repeating transaction", "errDetails" : err});
               } else {
-                //successfully applied the transaction - now update the repeating trans by incrementing the frequency
-                reptData.transaction.repeating.prevDate = reptData.transaction.repeating.nextDate;
-                reptData.transaction.repeating.nextDate = calculateNextRepeatingDate(reptData.transaction.repeating);
-                reptController.updateRepeating(req.params.rid, reptData, function(err, updatedRepeat) {
-                  if (err || !updatedRepeat) {
-                    res.status(err.number || 403).json({"error": "failed to update repeating transaction with revised nextDate", "errDetails" : err});
+
+                resetAccountBalance(req.headers.userid, createdTrans.transaction.account.id, createdTrans.transaction.account.code, function(err, balData) {
+                  if (err) {
+                    res.status(err.number || 500).json({"error": "error updating account balance after creating transaction from repeating transaction", "errDetails" : err});
                   } else {
-                    res.status(200).json(createdTrans);
+                    //successfully applied the transaction - now update the repeating trans by incrementing the frequency
+                    reptData.transaction.repeating.prevDate = reptData.transaction.repeating.nextDate;
+                    reptData.transaction.repeating.nextDate = calculateNextRepeatingDate(reptData.transaction.repeating);
+                    reptController.updateRepeating(req.params.rid, reptData, function(err, updatedRepeat) {
+                      if (err || !updatedRepeat) {
+                        res.status(err.number || 403).json({"error": "failed to update repeating transaction with revised nextDate", "errDetails" : err});
+                      } else {
+                        res.status(200).json(createdTrans);
+                      }
+                    })
                   }
                 })
               }
@@ -152,7 +158,7 @@ const routes = function(moneyApiVars) {
             res.status(err.number || 403).json({"error": "access to account group denied", "errDetails" : err});
           } else {
             //found accountgroup and the user is authorised to add new records to it
-            reptController.findRepeatingToDate(req.params.dte, function(err, reptList) {
+            reptController.findRepeatingToDate(req.params.accg, req.params.dte, function(err, reptList) {
               if (err || !reptList) {
                 res.status(err.number || 403).json({"error": "could not find repeating transaction list", "errDetails" : err});
               } else {
@@ -174,8 +180,7 @@ const routes = function(moneyApiVars) {
             res.status(err.number || 403).json({"error": "access to account group denied", "errDetails" : err});
           } else {
             //found accountgroup and the user is authorised to add new records to it
-            // reptController.findRepeatingToDate("2099-01-01", function(err, reptList) {
-            reptController.findAllRepeating(function(err, reptList) {
+            reptController.findAllRepeating(req.params.accg, function(err, reptList) {
               if (err || !reptList) {
                 res.status(err.number || 403).json({"error": "could not find repeating transaction list", "errDetails" : err});
               } else {
@@ -220,11 +225,13 @@ const routes = function(moneyApiVars) {
           done({"error": "access to account group denied", "errDetails" : err}, null);
         } else {
           //found accountgroup and the user is authorised to add new records to it
-          reptController.findRepeatingToDate(dte, function(err, reptList) {
+          reptController.findRepeatingToDate(accg, dte, function(err, reptList) {
             if (err || !reptList) {
               done({"error": "could not find repeating transaction list", "errDetails" : err}, null);
             } else {
-              var processed = 0;
+              var processed = 0,
+                  updatedAccounts = [];
+
               if (reptList.transactionList.length > 0) {
                 reptList.transactionList.forEach(function(val, idx, arr) {
 
@@ -239,6 +246,9 @@ const routes = function(moneyApiVars) {
                       if (err || !createdTrans) {
                         done({"error": "error creating transaction from repeating transaction", "errDetails" : err}, null);
                       } else {
+                        //add the account we just updated to the list of updated accounts
+                        updatedAccounts = addToListOfAccounts(updatedAccounts, createdTrans.transaction.account.id, createdTrans.transaction.account.code);
+
                         //successfully applied the transaction - now update the repeating trans by incrementing the frequency
                         tmpTrans.transaction.repeating.prevDate = tmpTrans.transaction.repeating.nextDate;
                         tmpTrans.transaction.repeating.nextDate = calculateNextRepeatingDate(tmpTrans.transaction.repeating);
@@ -248,7 +258,13 @@ const routes = function(moneyApiVars) {
                             done({"error": "failed to update repeating transaction with revised nextDate", "errDetails" : err}, null);
                           } else {
                             if (++processed === reptList.transactionList.length) {
-                              applyToDate(userid, accg, dte, done);
+                              resetAccountBalances(userid, updatedAccounts, function(err, balResult) {
+                                if (err) {
+                                  done({"error": "failed to update balances after applying repeating transactions", "errDetails" : err}, null);
+                                } else {
+                                  applyToDate(userid, accg, dte, done);
+                                }
+                              });
                             }
                           }
                         })
@@ -265,6 +281,18 @@ const routes = function(moneyApiVars) {
     }
 
 
+    function addToListOfAccounts(acclist, accid, acccode) {
+      let accFound = false;
+      acclist.forEach(function(val, idx) {
+          if (val.code === acccode) {
+            accFound = true;
+          }
+      });
+      if (!accFound) {
+        acclist.push({id: accid, code: acccode});
+      }
+      return acclist;
+    }
 
     function addHATEOS(transRecord, hostAddress) {
       transRecord.links = [{"self": HATEOASProtocol + hostAddress + HATEOASJunction + transRecord.id}];
@@ -298,6 +326,40 @@ const routes = function(moneyApiVars) {
       return dTargetDate;
     }
 
+
+    function resetAccountBalance(uid, acctid, acctcode, done) {
+      transController.calculateAccountBalance(acctcode, function(err, foundBalance) {
+        if (err || !foundBalance) {
+          done({"error": "could not calculate account balance", "accountcode": acctcode, "errDetails" : err}, null);
+        } else {
+          accountController.updateAccount(uid, acctid, {account: {balance: foundBalance.accountBalance}}, function(err, data) {
+            if (err || !data || !data.saveStatus || data.saveStatus !== 'updated') {
+              done(res.status(err.number || 500).json({"error": "error updating balance of account account", "acctid": acctid, "errDetails" : err}));
+            } else {
+              done(null, data);
+            }
+          })
+        }
+      })
+    }
+
+
+    function resetAccountBalances(uid, acctlist, done) {
+      var calculated = 0;
+      for (let i = 0; i < acctlist.length; i++) {
+        resetAccountBalance(uid, acctlist[i].id, acctlist[i].code, function(err, data) {
+          if (err) {
+            done(err, null);
+            return;
+          } else {
+            debug("rebalancing account " + acctlist[i].id + " " + acctlist[i].code);
+            if (++calculated === acctlist.length) {
+              done(null, {balancesUpdated: i});
+            }
+          }
+        })
+      }
+    }
 
 
     return reptRouter;

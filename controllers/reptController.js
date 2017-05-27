@@ -26,9 +26,9 @@ const controller = function(moneyApiVars) {
   }
 
 
-  const findRepeatingToDate = function(dte, done) {
+  const findRepeatingToDate = function(accg, dte, done) {
     let dateDte = new Date(dte);
-    repeating.find({'repeating.nextDate': {$lte: dateDte}, 'repeating.endOnDate': {$gte: dateDte}}).sort({'repeating.nextDate': 1}).exec(function(err, foundReptList) {
+    repeating.find({'account.group.id': accg, 'repeating.nextDate': {$lte: dateDte}, 'repeating.endOnDate': {$gte: dateDte}}).sort({'repeating.nextDate': 1}).exec(function(err, foundReptList) {
       if (err || !foundReptList) {
         done(constructErrReturnObj(err, 'could not find any repeating transactions', 404), null);
       } else {
@@ -38,9 +38,9 @@ const controller = function(moneyApiVars) {
   }
 
 
-  const findAllRepeating = function(done) {
+  const findAllRepeating = function(accg, done) {
     let dateDte = new Date();
-    repeating.find({'repeating.endOnDate': {$gte: dateDte}}).sort({'repeating.nextDate': 1}).exec(function(err, foundReptList) {
+    repeating.find({'account.group.id': accg, 'repeating.endOnDate': {$gte: dateDte}}).sort({'repeating.nextDate': 1}).exec(function(err, foundReptList) {
       if (err || !foundReptList) {
         done(constructErrReturnObj(err, 'could not find any repeating transactions', 404), null);
       } else {
