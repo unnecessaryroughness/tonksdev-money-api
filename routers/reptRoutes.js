@@ -235,13 +235,14 @@ const routes = function(moneyApiVars) {
                     tmpTrans.transaction.transactionDate = tmpTrans.transaction.repeating.nextDate;
                     tmpTrans.transaction.createdDate = dateFuncs.getTodaysDateYMD();
 
-                    transController.createTransaction(tmpTrans, function(err, createdTrans) {
+                    transController.createTransaction(JSON.parse(JSON.stringify(tmpTrans)), function(err, createdTrans) {
                       if (err || !createdTrans) {
                         done({"error": "error creating transaction from repeating transaction", "errDetails" : err}, null);
                       } else {
                         //successfully applied the transaction - now update the repeating trans by incrementing the frequency
                         tmpTrans.transaction.repeating.prevDate = tmpTrans.transaction.repeating.nextDate;
                         tmpTrans.transaction.repeating.nextDate = calculateNextRepeatingDate(tmpTrans.transaction.repeating);
+
                         reptController.updateRepeating(tmpTrans.transaction.id, tmpTrans, function(err, updatedRepeat) {
                           if (err || !updatedRepeat) {
                             done({"error": "failed to update repeating transaction with revised nextDate", "errDetails" : err}, null);
