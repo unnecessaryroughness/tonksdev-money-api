@@ -50,9 +50,15 @@ const MoneyApi = function() {
               if (matchedKeys) {
                 next();
               } else {
-                let err = new Error('Access Denied');
-                err.status = 403;
-                next(err);
+                debug("error in API: url", req.url);
+                if (req.url === "/") {
+                  res.status(200);
+                  res.end();
+                } else {
+                  let err = new Error('Access Denied');
+                  err.status = 403;
+                  next(err);
+                }
               }
             })
 
