@@ -52,7 +52,7 @@ const MoneyApi = function() {
               } else {
                 debug("error in API: url", req.url);
                 if (req.url === "/") {
-                  res.status(200);
+                  res.status(200).json({"healthcheck": "API is ALIVE!"});
                   res.end();
                 } else {
                   let err = new Error('Access Denied');
