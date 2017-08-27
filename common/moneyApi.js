@@ -50,11 +50,11 @@ const MoneyApi = function() {
               if (matchedKeys) {
                 next();
               } else {
-                debug("error in API: url", req.url);
                 if (req.url === "/") {
                   res.status(200).json({"healthcheck": "API is ALIVE!"});
                   res.end();
                 } else {
+                  debug("error in API: url", req.url);
                   let err = new Error('Access Denied');
                   err.status = 403;
                   next(err);
