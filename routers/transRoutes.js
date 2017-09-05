@@ -291,7 +291,7 @@ const routes = function(moneyApiVars) {
         } else {
           accountController.updateAccount(uid, acctid, {account: {balance: foundBalance.accountBalance}}, function(err, data) {
             if (err || !data || !data.saveStatus || data.saveStatus !== 'updated') {
-              done(res.status(err.number || 500).json({"error": "error updating balance of account account", "acctid": acctid, "errDetails" : err}));
+              done({"error": "error updating balance of account account", "acctid": acctid, "errDetails" : err}, null);
             } else {
               done(null, data);
             }
