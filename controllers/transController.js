@@ -85,7 +85,6 @@ const controller = function(moneyApiVars) {
 
   const updateTransaction = function(tid, reqBody, done, recurse) {
 
-// debug("in update")
     if (tid && reqBody) {
       transaction.findById(tid, function(err, foundTrans) {
         if (err || !foundTrans) {
@@ -301,7 +300,7 @@ const controller = function(moneyApiVars) {
           if (transFromApp.isCleared)       transObject.isCleared       = transFromApp.isCleared;
           if (!transFromApp.isCleared)      transObject.isCleared       = false;
           if (transFromApp.isPlaceholder)   transObject.isPlaceholder   = transFromApp.isPlaceholder;
-          if (!transFromApp.isPlaceholder)  transObject.isPlaceholder   = transObject.isPlaceholder;
+          if (!transFromApp.isPlaceholder)  transObject.isPlaceholder   = false;
           if (transFromApp.repeating)       transObject.repeating       = transFromApp.repeating;
       }
       return transObject;
