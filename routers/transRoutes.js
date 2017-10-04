@@ -174,7 +174,7 @@ const routes = function(moneyApiVars) {
             //found trans, so user has the authority to update it
             let currentAmount = transData.transaction.amount;
             let targetAmount = (parseFloat(currentAmount) + parseFloat(req.body.adjustBy)).toFixed(2);
-            transController.updateTransaction(req.params.tid, {"transaction": {amount: targetAmount}}, function(err, updatedTrans) {
+            transController.updateTransaction(req.params.tid, {"transaction": {amount: targetAmount, isPlaceholder: true}}, function(err, updatedTrans) {
               if (err || !updatedTrans) {
                 res.status(err.number || 500).json({"error": "error updating transaction balance", "errDetails" : err});
               } else {
