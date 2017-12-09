@@ -212,7 +212,6 @@ const controller = function(moneyApiVars) {
 
 
   const calculateAccountBalance = function(accountCode, done) {
-    // console.log("about to calculate balance")
     transaction.aggregate([
                             {$match: {"account.code": accountCode}},
                             {$group: {_id: null, totalBalance: {$sum: "$amount"}} }
@@ -220,7 +219,7 @@ const controller = function(moneyApiVars) {
                             .exec()
                             .on("data", (foundBalance) => {
                               // console.log(foundBalance);
-                                  if (typeof foundBalance !== "undefined" && typeof(foundBalance.totalBalance) !== "undefined" && foundBalance.totalBalance > 0) {
+                                  if (typeof foundBalance !== "undefined" && typeof(foundBalance.totalBalance) !== "undefined") {
                                     done(null, {'accountBalance': foundBalance.totalBalance.toFixed(2)});
                                   } else {
                                     done(null, {'accountBalance': parseFloat(0).toFixed(2)});
