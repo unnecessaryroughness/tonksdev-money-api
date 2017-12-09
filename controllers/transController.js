@@ -212,17 +212,20 @@ const controller = function(moneyApiVars) {
 
 
   const calculateAccountBalance = function(accountCode, done) {
-    transaction.aggregate([{$match: {"account.code": accountCode}}, { $group: {_id: null, totalBalance: {$sum: "$amount"}} }], function(err, foundBalance) {
-      if (err) {
-        done(constructErrReturnObj(err, 'could not get aggregate of account transactions', 500), null);
-      } else {
-        if (foundBalance.length > 0) {
-          done(null, {'accountBalance': foundBalance[0].totalBalance.toFixed(2)});
-        } else {
-          done(null, {'accountBalance': parseFloat(0).toFixed(2)});
-        }
-      }
-    })
+    console.log("about to calculate balance")
+    transaction.aggregate([
+                            {$match: {"account.code": accountCode}},
+                            {$group: {_id: null, totalBalance: {$sum: "$amount"}} }
+                          ]).cursor({batchSize: 1000})
+                            .exec()
+                            .on("data", (foundBalance) => {
+                                  if (typeof foundBalance !== "undefined" && foundBalance.length > 0) {
+                                    done(null, {'accountBalance': foundBalance[0].totalBalance.toFixed(2)});
+                                  } else {
+                                    done(null, {'accountBalance': parseFloat(0).toFixed(2)});
+                                  }
+                            });
+
   }
 
 
