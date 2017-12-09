@@ -225,7 +225,6 @@ const controller = function(moneyApiVars) {
                                     done(null, {'accountBalance': parseFloat(0).toFixed(2)});
                                   }
                             });
-
   }
 
 
