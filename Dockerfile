@@ -1,10 +1,12 @@
-FROM node:4-onbuild
+FROM node:8
 
-# Copy app to /src
-COPY . /src
+WORKDIR /home/markt/docker/money/api
 
-RUN cd /src; npm install
+COPY package*.json ./
+RUN npm install --only=production
+
+COPY . .
 
 EXPOSE 8081
 
-CMD cd /src && DEBUG=tonksDEV:* node ./server.js
+CMD DEBUG=tonksDEV:* node ./server.js
